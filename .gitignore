@@ -1,0 +1,13 @@
+#ignore temp files
+*~
+
+#ignore junk files from compiling C code
+*.o
+
+#ignore files without extention
+*
+!/**/
+!*.*
+
+#ignore OS-X, DS_Store
+*.DS_Store

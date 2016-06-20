@@ -3,6 +3,7 @@
 
 #ignore junk files from compiling C code
 *.o
+*.out
 
 #ignore files without extention
 *

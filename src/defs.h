@@ -21,6 +21,8 @@ typedef struct {
   uint8 y;
   uint8 z;
   Direction d;
+  uint8 start_tile_x;
+  uint8 start_tile_y;
 } Robot;
 
 #endif

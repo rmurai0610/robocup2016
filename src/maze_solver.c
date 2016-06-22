@@ -58,7 +58,6 @@ void update_tiles(Maze maze, Robot *robot_ptr) {
     set_val(maze, x, y, z, min + 1);
   }
 
-
   if(!get_north_wall(maze, x, y, z)) {
     set_val(maze, x, (y + 1), z, min);
   }
@@ -156,16 +155,113 @@ void maze_solver(Maze maze, Robot *robot_ptr) {
  * If new tile is not found, it will go to the starting tile or
  * the ramp tile
  * returns
- * 0 -> reached new tile
- * 1 -> reached ramp tile
- * 2 -> reached start tile
+ * 0 -> reached start/ramp tile
+ * 1 -> reached new tile
  */
-uint8 find_unvisited(Maze maze_ptr, Robot *robot_ptr) {
-  uint8 z = robot_ptr->z;
-  uint8 init_x = robot_ptr->x;
-  uint8 init_y = robot_ptr->y;
+uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
+  for(;;) {
+    uint8 z = robot_ptr->z;
+    uint8 x = robot_ptr->x;
+    uint8 y = robot_ptr->y;
+    Direction d = robot_ptr->d;
 
-  uint8 x = init_x;
-  uint8 y = init_y;
-  return x + y + z + maze_ptr[0][0];
+    update_tiles(maze, robot_ptr);
+
+    uint8 curr_val = get_val(maze, x, y, z);
+    //found start / ramp tile
+    if(!curr_val) {
+      return 0;
+    }
+    curr_val--;
+
+    if(!d) {
+      //if d = N, force it to be W
+      d = W;
+    } else {
+      d -= 1;
+    }
+    uint8 found_new_tile = 0;
+    //checks 3 tiles around the current tile for new tile
+    for (int i = 0; i < 3; ++i) {
+      d += i;
+      d %= 4;
+      switch(d) {
+        case N:
+          if(!is_visited(maze, x, y + 1, z)  && !get_north_wall(maze, x, y, z)) {
+            found_new_tile = 1;
+            turn_to_new_tile(i, robot_ptr);
+          }
+          break;
+        case E:
+          if(!is_visited(maze, x + 1, y, z) && !get_east_wall(maze, x, y, z)) {
+            found_new_tile = 1;
+            turn_to_new_tile(i, robot_ptr);
+          }
+          break;
+        case S:
+          if(!is_visited(maze, x, y - 1, z) && !get_south_wall(maze, x, y, z)) {
+            found_new_tile = 1;
+            turn_to_new_tile(i, robot_ptr);
+          }
+          break;
+        case W:
+          if(!is_visited(maze, x - 1, y, z) && !get_west_wall(maze, x, y, z)) {
+            found_new_tile = 1;
+            turn_to_new_tile(i, robot_ptr);
+          }
+          break;
+      }
+      if(found_new_tile) {
+        break;
+      }
+    }
+    //goes down the flooded maze
+    if(!found_new_tile) {
+      uint8 next_val = get_val(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z) - 1;
+      d = robot_ptr->d;
+      if(!d) {
+        //if d = N, force it to be W
+        d = W;
+      } else {
+        d -= 1;
+      }
+      for (int i = 0; i < 3; ++i) {
+        d += i;
+        d %= 4;
+        switch(d) {
+          case N:
+            if(get_val(maze, x, y + 1, z) == next_val && !get_north_wall(maze, x, y, z)) {
+              turn_to_new_tile(i, robot_ptr);
+            }
+            break;
+          case E:
+            if(get_val(maze, x + 1, y, z) == next_val && !get_east_wall(maze, x, y, z)) {
+              turn_to_new_tile(i, robot_ptr);
+            }
+            break;
+          case S:
+            if(get_val(maze, x, y - 1, z) == next_val && !get_south_wall(maze, x, y, z)) {
+              turn_to_new_tile(i, robot_ptr);
+            }
+            break;
+          case W:
+            if(get_val(maze, x - 1, y, z) == next_val && !get_west_wall(maze, x, y, z)) {
+              turn_to_new_tile(i, robot_ptr);
+            }
+            break;
+        }
+      }
+    }
+    //shift the map is needed
+    if(robot_ptr->d == W && !robot_ptr->x) {
+      shift_maze_right(maze, robot_ptr);
+    }
+    if(robot_ptr->d == S && !robot_ptr->y) {
+      shift_maze_right(maze, robot_ptr);
+    }
+    move_forward_tile(robot_ptr);
+    if(found_new_tile) {
+      return 1;
+    }
+  }
 }

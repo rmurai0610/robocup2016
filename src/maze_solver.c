@@ -1,10 +1,4 @@
-#include "maze.h"
-#include "movement.h"
-#include <string.h>
-
-uint8 find_unvisited(Maze maze_ptr, Robot *robot_ptr);
-void turn_to_new_tile(uint8 i, Robot *robot_ptr);
-
+#include "maze_solver.h"
 void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
   if(!i) {
     turn_left_90(robot_ptr);
@@ -215,7 +209,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
         break;
       }
     }
-    //goes down the flooded maze
+    //goes down the flooded maze need to check 4 Direction
     if(!found_new_tile) {
       uint8 next_val = get_val(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z) - 1;
       d = robot_ptr->d;
@@ -225,7 +219,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
       } else {
         d -= 1;
       }
-      for (int i = 0; i < 3; ++i) {
+      for (int i = 0; i < 4; ++i) {
         d += i;
         d %= 4;
         switch(d) {

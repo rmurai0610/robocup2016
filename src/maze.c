@@ -115,7 +115,7 @@ uint8 get_val(Maze maze, uint8 x, uint8 y, uint8 z) {
   }
   uint8 curr_tile = maze[z][x + y * MAZE_X];
   //return first 8 bits
-  return curr_tile >> 8;
+  return (uint8) curr_tile >> 8;
 }
 
 
@@ -231,5 +231,6 @@ void set_val(Maze maze, uint8 x, uint8 y, uint8 z, uint8 val) {
     return;
   }
   //set val to the first 8 bits
-  maze[z][x + y * MAZE_X] &= (val << 8);
+  maze[z][x + y * MAZE_X] &= 0x00FFu;
+  maze[z][x + y * MAZE_X] |= (val << 8);
 }

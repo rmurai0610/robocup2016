@@ -99,6 +99,7 @@ int main(void) {
   assert(!get_north_wall(maze, 10, 10, 0));
   set_south_wall(maze, 10, 19, 1, 0);
   assert(!get_south_wall(maze, 10, 19, 1));
+  assert(get_val(maze, 10, 10, 0) != 0xFFu);
 
   print_test("Passed All Tests!");
 #endif

@@ -37,6 +37,7 @@ uint8 maze_solver(Maze maze, Robot *robot_ptr) {
     d -= 1;
   }
   uint8 found_new_tile = 0;
+  //standard LHR but avoids going back on to previously visited tiles
   //checks 3 tiles around the current tile
   for (int i = 0; i < 3; ++i) {
     switch(d) {
@@ -79,7 +80,10 @@ uint8 maze_solver(Maze maze, Robot *robot_ptr) {
       //TODO add check for the non starting floor
       if(!robot_ptr->z) {
         return 1;
+      } else {
+        //on the ramp tile!
       }
+
 
     }
   } else {

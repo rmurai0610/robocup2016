@@ -1,5 +1,5 @@
-extern uint64_t encoder_val_l;
-extern uint64_t encoder_val_r;
+extern int64_t encoder_val_l;
+extern int64_t encoder_val_r;
 extern motor_dir curr_dir_l;
 extern motor_dir curr_dir_r;
 
@@ -9,7 +9,6 @@ void enc_l(void) {
   } else {
     encoder_val_l--;
   }
-  Serial.printf("L: %i\n", encoder_val_l);
 }
 
 void enc_r(void) {
@@ -18,7 +17,6 @@ void enc_r(void) {
   } else {
     encoder_val_r--;
   }
-  Serial.printf("R: %i\n", encoder_val_r);
 }
 
 void reset_enc(void) {

@@ -1,6 +1,8 @@
 #include "movement.h"
-void move_forward_tile(Robot *robot_ptr) {
+#include <stdio.h>
+void move_forward_tile(Maze maze, Robot *robot_ptr) {
   Direction d = robot_ptr->d;
+  set_visited(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
   switch(d) {
    case N:
      if(robot_ptr->y < MAZE_Y) {

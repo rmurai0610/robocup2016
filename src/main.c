@@ -21,11 +21,19 @@ void print_test(char const *s) {
   printf("========== %*s%*s ==========\n",10 + ((int) strlen(s)) / 2, s, 10 - ((int) strlen(s)) / 2, "");
 }
 
-void print_maze(Maze maze) {
+void print_maze(Maze maze, Robot *robot_ptr) {
   int y = MAZE_SIZE - 1;
   while(y --> 0) {
     for (int x = 0; x < MAZE_SIZE; ++x) {
-      printf("%3i ", get_val(maze, x, y, 0));
+      if(x == robot_ptr->x && y == robot_ptr->y) {
+        printf("%3c", '#');
+      } else {
+        if(is_visited(maze, x, y, 0)) {
+          printf("%3c", '@');
+        } else {
+          printf("%3c", ' ');
+        }
+      }
     }
     printf("\n");
   }
@@ -122,9 +130,8 @@ int main(void) {
     maze_floor_1[i] = 0xFF00u;
     maze_floor_2[i] = 0xFF00u;
   }
-  maze[0][0] = 0;
+
   init_robot(robot);
-  print_maze(maze);
 
   set_south_wall(maze,0,0,0,1);
   set_south_wall(maze,1,0,0,1);
@@ -148,6 +155,7 @@ int main(void) {
   set_south_wall(maze,7,4,0,1);
   set_south_wall(maze,8,4,0,1);
   set_south_wall(maze,9,4,0,1);
+
   set_west_wall(maze,0,0,0,1);
   set_west_wall(maze,0,1,0,1);
   set_west_wall(maze,0,2,0,1);
@@ -157,6 +165,16 @@ int main(void) {
   set_west_wall(maze,10,2,0,1);
   set_west_wall(maze,10,3,0,1);
 
+  set_west_wall(maze,2,2,0,1);
+  set_west_wall(maze,2,3,0,1);
+
+  set_west_wall(maze,5,2,0,1);
+  set_west_wall(maze,5,3,0,1);
+
+  set_south_wall(maze,7,2,0,1);
+  set_south_wall(maze,8,2,0,1);
+  set_south_wall(maze,9,2,0,1);
+
   print_test("Testing maze_solver.c");
   for(int i = 0; ; i++){
     printf("%i itt\n", i);
@@ -165,14 +183,16 @@ int main(void) {
         get_east_wall(maze, robot->x, robot->y, robot->z),
         get_south_wall(maze, robot->x, robot->y, robot->z),
         get_west_wall(maze, robot->x, robot->y, robot->z));
-    print_maze(maze);
-    for (volatile long i = 0; i < 300000000; ++i) {
+    print_maze(maze, robot);
+    for (volatile int i = 0; i < 30000000; ++i) {
+
     }
     if(maze_solver(maze, robot)) {
       break;
     }
   }
-  print_maze(maze);
+  printf("\n");
+  print_maze(maze, robot);
   print_test("Passed All Tests!");
 #endif
   return 0;

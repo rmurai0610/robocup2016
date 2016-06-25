@@ -3,9 +3,8 @@
 
 #include "maze.h"
 #include "movement.h"
-#include <string.h>
-
-uint8 find_unvisited(Maze maze_ptr, Robot *robot_ptr);
-void turn_to_new_tile(uint8 i, Robot *robot_ptr);
-
+void turn_to_new_tile(uint8, Robot *);
+void update_tiles(Maze, Robot *);
+uint8 maze_solver(Maze, Robot *);
+uint8 find_unvisited(Maze, Robot *);
 #endif

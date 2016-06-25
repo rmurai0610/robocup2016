@@ -13,7 +13,7 @@ typedef int8_t  int8;
 typedef uint16_t** Maze;
 
 typedef enum {
-    N, E, S, W
+    N = 0, E = 1, S = 2, W = 3
 } Direction;
 
 typedef struct {

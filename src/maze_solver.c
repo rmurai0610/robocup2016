@@ -1,4 +1,8 @@
 #include "maze_solver.h"
+
+
+#include <stdio.h>
+
 void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
   if(!i) {
     turn_left_90(robot_ptr);
@@ -11,65 +15,90 @@ void update_tiles(Maze maze, Robot *robot_ptr) {
   uint8 x = robot_ptr->x;
   uint8 y = robot_ptr->y;
   uint8 z = robot_ptr->z;
+  uint8 d = robot_ptr->d;
+  printf("printing %i %i %i\n", x, y, z);
 
   uint8 curr_val = get_val(maze, x, y, z);
   uint8 min = curr_val;
   uint8 new_min_found = 0;
 
-  if(!get_north_wall(maze, x, y, z)) {
-    if(min > get_val(maze, x, (y + 1), z)) {
-      min = get_val(maze, x, (y + 1), z);
-      new_min_found = 1;
-    }
+  if(!d) {
+    //if d = 0, force it to be West
+    d = W;
+  } else {
+    d -= 1;
   }
-
-  if(!get_east_wall(maze, x, y, z)) {
-    if(min > get_val(maze, (x + 1), y, z)) {
-      min = get_val(maze, (x + 1), y, z);
-      new_min_found = 1;
-    }
-  }
-
-  if(!y && !get_south_wall(maze, x, y, z)) {
-    if(min > get_val(maze, x, (y - 1), z)) {
-      min = get_val(maze, x, (y - 1), z);
-      new_min_found = 1;
-    }
-  }
-
-  if(!x && !get_west_wall(maze, x, y, z)) {
-    if(min > get_val(maze, (x - 1), y, z)) {
-      min = get_val(maze, (x - 1), y, z);
-      new_min_found = 1;
+  //checks 3 tiles around the current tile
+  for (int i = 0; i < 3; ++i) {
+    d++;
+    d %= 4;
+    switch(d) {
+      case N:
+        printf("checking N\n");
+        if(!get_north_wall(maze, x, y, z)) {
+          if(min > get_val(maze, x, (y + 1), z)) {
+            min = get_val(maze, x, (y + 1), z);
+            new_min_found = 1;
+          }
+        }
+        break;
+      case E:
+        printf("checking E\n");
+        if(!get_east_wall(maze, x, y, z)) {
+          if(min > get_val(maze, (x + 1), y, z)) {
+            min = get_val(maze, (x + 1), y, z);
+            new_min_found = 1;
+          }
+        }
+        break;
+      case S:
+        printf("checking S\n");
+        if(y && !get_south_wall(maze, x, y, z)) {
+          if(min > get_val(maze, x, (y - 1), z)) {
+            min = get_val(maze, x, (y - 1), z);
+            new_min_found = 1;
+          }
+        }
+        break;
+      case W:
+        printf("checking W\n");
+        if(x && !get_west_wall(maze, x, y, z)) {
+          if(min > get_val(maze, (x - 1), y, z)) {
+            min = get_val(maze, (x - 1), y, z);
+            new_min_found = 1;
+          }
+        }
+        break;
     }
   }
 
   if(!new_min_found) {
     //this means the current tile should have the smallest number
     min += 1;
+    printf("didnt found new min tiles...\n");
   } else {
     //this means the current tile should have the largest number
     set_val(maze, x, y, z, min + 1);
   }
 
-  if(!get_north_wall(maze, x, y, z)) {
+  if(!get_north_wall(maze, x, y, z) && min < get_val(maze, x, (y + 1), z)) {
     set_val(maze, x, (y + 1), z, min);
   }
 
-  if(!get_east_wall(maze, x, y, z)) {
+  if(!get_east_wall(maze, x, y, z) && min < get_val(maze, (x + 1), y, z)) {
     set_val(maze, (x + 1), y, z, min);
   }
 
-  if(!y && !get_south_wall(maze, x, y, z)) {
+  if(y && !get_south_wall(maze, x, y, z) && min < get_val(maze, x, (y - 1), z)) {
     set_val(maze, x, (y - 1), z, min);
   }
 
-  if(!x && !get_west_wall(maze, x, y, z)) {
+  if(x && !get_west_wall(maze, x, y, z) && min < get_val(maze, (x + 1), y, z)) {
     set_val(maze, (x - 1), y, z, min);
   }
 }
 
-void maze_solver(Maze maze, Robot *robot_ptr) {
+uint8 maze_solver(Maze maze, Robot *robot_ptr) {
   //check for all 4 surrounding tile
   //if all of the tiles are visited or is wall use
   //find next unvisited to go to the next unvisited tile
@@ -98,7 +127,7 @@ void maze_solver(Maze maze, Robot *robot_ptr) {
   uint8 found_new_tile = 0;
   //checks 3 tiles around the current tile
   for (int i = 0; i < 3; ++i) {
-    d += i;
+    d++;
     d %= 4;
     switch(d) {
       case N:
@@ -132,7 +161,9 @@ void maze_solver(Maze maze, Robot *robot_ptr) {
   }
   if(!found_new_tile) {
     //need some sort of checking to see if we reached the end or not
-    find_unvisited(maze, robot_ptr);
+    if(!find_unvisited(maze, robot_ptr)) {
+      return 1;
+    }
   } else {
     //shift the map is needed
     if(robot_ptr->d == W && !robot_ptr->x) {
@@ -143,6 +174,7 @@ void maze_solver(Maze maze, Robot *robot_ptr) {
     }
     move_forward_tile(robot_ptr);
   }
+  return 0;
 }
 
 /* Finds the next unvisited tile move the robot to the tile
@@ -177,7 +209,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
     uint8 found_new_tile = 0;
     //checks 3 tiles around the current tile for new tile
     for (int i = 0; i < 3; ++i) {
-      d += i;
+      d++;
       d %= 4;
       switch(d) {
         case N:
@@ -220,7 +252,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
         d -= 1;
       }
       for (int i = 0; i < 4; ++i) {
-        d += i;
+        d++;
         d %= 4;
         switch(d) {
           case N:

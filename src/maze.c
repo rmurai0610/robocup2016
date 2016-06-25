@@ -113,9 +113,9 @@ uint8 get_val(Maze maze, uint8 x, uint8 y, uint8 z) {
     //out of bound request
     return 1;
   }
-  uint8 curr_tile = maze[z][x + y * MAZE_X];
+  uint16 curr_tile = maze[z][x + y * MAZE_X];
   //return first 8 bits
-  return (uint8) curr_tile >> 8;
+  return (uint8) (curr_tile >> 8);
 }
 
 

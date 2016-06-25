@@ -6,6 +6,9 @@ void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
     turn_left_90(robot_ptr);
   } else if(i == 2) {
     turn_right_90(robot_ptr);
+  } else if(i == 3) {
+    turn_right_90(robot_ptr);
+    turn_right_90(robot_ptr);
   }
 }
 //returns 1 when it finishes solving maze

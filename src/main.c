@@ -58,8 +58,7 @@ int main(void) {
     maze_floor_2[i] = 0xFF00u;
   }
   uint16 *maze[] = {maze_floor_1, maze_floor_2};
-  //set the value of first tile to zero
-  maze[0][0] = 0;
+
   //initialise the robot
   Robot *robot = malloc(sizeof(Robot));
   init_robot(robot);
@@ -144,26 +143,52 @@ int main(void) {
   set_south_wall(maze,7,0,0,1);
   set_south_wall(maze,8,0,0,1);
   set_south_wall(maze,9,0,0,1);
-  set_south_wall(maze,0,4,0,1);
-  set_south_wall(maze,1,4,0,1);
-  set_south_wall(maze,2,4,0,1);
-  set_south_wall(maze,2,4,0,1);
-  set_south_wall(maze,3,4,0,1);
-  set_south_wall(maze,4,4,0,1);
-  set_south_wall(maze,5,4,0,1);
-  set_south_wall(maze,6,4,0,1);
-  set_south_wall(maze,7,4,0,1);
-  set_south_wall(maze,8,4,0,1);
-  set_south_wall(maze,9,4,0,1);
+  set_south_wall(maze,10,0,0,1);
+  set_south_wall(maze,11,0,0,1);
+  set_south_wall(maze,12,0,0,1);
+  set_south_wall(maze,12,0,0,1);
+  set_south_wall(maze,13,0,0,1);
+  set_south_wall(maze,14,0,0,1);
+  set_south_wall(maze,15,0,0,1);
+
+  set_south_wall(maze,0, 9,0,1);
+  set_south_wall(maze,1, 9,0,1);
+  set_south_wall(maze,2, 9,0,1);
+  set_south_wall(maze,2, 9,0,1);
+  set_south_wall(maze,3, 9,0,1);
+  set_south_wall(maze,4, 9,0,1);
+  set_south_wall(maze,5, 9,0,1);
+  set_south_wall(maze,6, 9,0,1);
+  set_south_wall(maze,7, 9,0,1);
+  set_south_wall(maze,8, 9,0,1);
+  set_south_wall(maze,9, 9,0,1);
+  set_south_wall(maze,10,9,0,1);
+  set_south_wall(maze,11,9,0,1);
+  set_south_wall(maze,12,9,0,1);
+  set_south_wall(maze,12,9,0,1);
+  set_south_wall(maze,13,9,0,1);
+  set_south_wall(maze,14,9,0,1);
+  set_south_wall(maze,15,9,0,1);
 
   set_west_wall(maze,0,0,0,1);
   set_west_wall(maze,0,1,0,1);
   set_west_wall(maze,0,2,0,1);
   set_west_wall(maze,0,3,0,1);
-  set_west_wall(maze,10,0,0,1);
-  set_west_wall(maze,10,1,0,1);
-  set_west_wall(maze,10,2,0,1);
-  set_west_wall(maze,10,3,0,1);
+  set_west_wall(maze,0,4,0,1);
+  set_west_wall(maze,0,5,0,1);
+  set_west_wall(maze,0,6,0,1);
+  set_west_wall(maze,0,7,0,1);
+  set_west_wall(maze,0,8,0,1);
+
+  set_west_wall(maze,16,0,0,1);
+  set_west_wall(maze,16,1,0,1);
+  set_west_wall(maze,16,2,0,1);
+  set_west_wall(maze,16,3,0,1);
+  set_west_wall(maze,16,4,0,1);
+  set_west_wall(maze,16,5,0,1);
+  set_west_wall(maze,16,6,0,1);
+  set_west_wall(maze,16,7,0,1);
+  set_west_wall(maze,16,8,0,1);
 
   set_west_wall(maze,2,2,0,1);
   set_west_wall(maze,2,3,0,1);
@@ -174,6 +199,16 @@ int main(void) {
   set_south_wall(maze,7,2,0,1);
   set_south_wall(maze,8,2,0,1);
   set_south_wall(maze,9,2,0,1);
+
+  set_west_wall(maze,5,2,0,1);
+  set_west_wall(maze,5,3,0,1);
+
+  set_west_wall(maze,9,2,0,1);
+  set_west_wall(maze,9,3,0,1);
+
+  set_south_wall(maze,7,6,0,1);
+  set_south_wall(maze,8,6,0,1);
+  set_south_wall(maze,9,6,0,1);
 
   print_test("Testing maze_solver.c");
   for(int i = 0; ; i++){

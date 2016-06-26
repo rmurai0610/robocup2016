@@ -18,6 +18,8 @@
 #define TRIG_PIN_FR 9
 #define TRIG_PIN_R  10
 #define TRIG_PIN_FL 10
+//MPU
+#define MPU_RESET_PIN 2
 //variable
 #define P_FORWARD 0.5
 
@@ -33,12 +35,14 @@ motor_dir curr_dir_r   = FORWARD;
 
 void setup() {
   delay(100);
-  Serial.begin(9600);
+  Serial.begin(115200);
+  Serial1.begin(115200);
 
   // setup the sensors/motors
   int outputs[] = { PIN_AIN1, PIN_AIN2, PIN_BIN1,
                     PIN_BIN2, PIN_PWMA, PIN_PWMB,
-                    TRIG_PIN_R, TRIG_PIN_L };
+                    TRIG_PIN_R, TRIG_PIN_L,
+                    MPU_RESET_PIN };
   int inputs[]  = { ENC_L, ENC_R,
                     ECHO_PIN_L, ECHO_PIN_R, ECHO_PIN_FL, ECHO_PIN_FR };
 
@@ -52,12 +56,22 @@ void setup() {
   attachInterrupt(ENC_L, enc_l, FALLING);
   attachInterrupt(ENC_R, enc_r, FALLING);
 
+  reset_mpu();
 }
 
 void loop() {
-  delay(100);
-  Serial.printf("L: %f\n", read_us(ECHO_PIN_L, TRIG_PIN_L));
-  Serial.printf("R: %f\n", read_us(ECHO_PIN_R, TRIG_PIN_R));
-  Serial.printf("FL: %f\n", read_us(ECHO_PIN_FL, TRIG_PIN_FL));
-  Serial.printf("FR: %f\n", read_us(ECHO_PIN_FR, TRIG_PIN_FR));
+  int16_t mpu_buff[4] = { 0 };
+  for(;;) {
+    read_gyro(mpu_buff);
+    delay(10);
+    Serial.printf("\nangle: %i\n", mpu_buff[0]);
+    Serial.printf("acc_x: %i\n",   mpu_buff[1]);
+    Serial.printf("acc_y: %i\n",   mpu_buff[2]);
+    Serial.printf("acc_z: %i\n",   mpu_buff[3]);
+    Serial.printf("L: %f\n",  read_us(ECHO_PIN_L, TRIG_PIN_L));
+    Serial.printf("R: %f\n",  read_us(ECHO_PIN_R, TRIG_PIN_R));
+    Serial.printf("FL: %f\n", read_us(ECHO_PIN_FL, TRIG_PIN_FL));
+    Serial.printf("FR: %f\n", read_us(ECHO_PIN_FR, TRIG_PIN_FR)); 
+  }
+  
 }

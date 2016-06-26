@@ -5,10 +5,8 @@
 *.o
 *.out
 
-#ignore files without extention
-*
-!/**/
-!*.*
+#ignore my Documents
+Documents/
 
 #ignore OS-X, DS_Store
 *.DS_Store

@@ -28,6 +28,6 @@ float read_us_fl(void) {
   return read_us(ECHO_PIN_FL, TRIG_PIN_FL);
 }
 
-float read_us_r(void) {
+float read_us_fr(void) {
   return read_us(ECHO_PIN_FR, TRIG_PIN_FR);
 }

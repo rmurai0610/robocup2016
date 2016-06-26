@@ -60,4 +60,4 @@ void loop() {
   Serial.printf("R: %f\n", read_us(ECHO_PIN_R, TRIG_PIN_R));
   Serial.printf("FL: %f\n", read_us(ECHO_PIN_FL, TRIG_PIN_FL));
   Serial.printf("FR: %f\n", read_us(ECHO_PIN_FR, TRIG_PIN_FR));
- }
+}

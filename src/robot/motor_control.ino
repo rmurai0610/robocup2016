@@ -18,7 +18,6 @@ void p_sync_forward(int pow) {
     diff_encoder = encoder_val_r - encoder_val_l;
     p_pow_r -= (int) (diff_encoder * P_FORWARD);
   }
-  Serial.printf("L_SPEED: %i R_SPEED: %i\n", p_pow_l, p_pow_r);
   motor_left(p_pow_l);
   motor_right(p_pow_r);
 }

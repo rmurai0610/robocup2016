@@ -174,17 +174,18 @@ void go_to_next_unvisited(Maze maze, Robot *robot_ptr, uint8 nx, uint8 ny) {
     }
   }
   set_val(maze, nx, ny, z, 1);
-  uint8 end_search = 1;
+  uint8 end_search = 0;
 
   // make flooded table
   for(;;) {
-    end_search = 1;
     for (int y = 0; y < MAZE_Y; ++y) {
       for (int x = 0; x < MAZE_X; ++x) {
         uint8 lowest_val = lowest_neighbour(maze, x, y, z);
         if(lowest_val && get_val(maze, x, y, z) == 255) {
           set_val(maze, x, y, z, lowest_val + 1);
-          end_search = 0;
+          if(x == robot_ptr->x && y == robot_ptr->y) {
+            end_search = 1;
+          }
         }
       }
     }

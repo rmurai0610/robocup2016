@@ -62,3 +62,8 @@ void motor_off(void) {
   motor_right_off();
   motor_left_off();
 }
+
+void motor_start(void) {
+  digitalWrite(STAND_BY, HIGH);
+}
+

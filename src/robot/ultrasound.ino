@@ -31,3 +31,12 @@ float read_us_fl(void) {
 float read_us_fr(void) {
   return read_us(ECHO_PIN_FR, TRIG_PIN_FR);
 }
+
+float read_us_bl(void) {
+  return read_us(ECHO_PIN_BL, TRIG_PIN_BL);
+}
+
+
+float read_us_br(void) {
+  return read_us(ECHO_PIN_BR, TRIG_PIN_BR);
+}

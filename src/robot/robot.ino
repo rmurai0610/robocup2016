@@ -1,8 +1,9 @@
- #include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 #include <Wire.h>
 #include <Servo.h>
 #include "defs.h"
 #include "pin_def.h"
+#include "maze_util.h"
 
 //TPA81
 #define TPA81_RIGHT  0x6A
@@ -16,13 +17,13 @@
 
 
 //global variable to handle interrupts
-int64_t encoder_val_l = 0;
-int64_t encoder_val_r = 0;
+int32 encoder_val_l = 0;
+int32 encoder_val_r = 0;
 motor_dir curr_dir_l   = FORWARD;
 motor_dir curr_dir_r   = FORWARD;
 
 //for reset
-uint8_t reset_signal = 0;
+uint8 reset_signal = 0;
 //To allow any function to access neo pixel easily
 Adafruit_NeoPixel neo_pixel = Adafruit_NeoPixel(8, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -83,66 +84,31 @@ void setup() {
 }
 
 void loop() {
-  int16_t mpu_buff[4] = { 0 };
-  neo_pixel.setPixelColor(0, neo_pixel.Color(0, 0, 255));
-  neo_pixel.show();
-  delay(500);
-  neo_pixel.setPixelColor(0, 0);
-  neo_pixel.show();
-  /*
-  Servo rescue_kit;
-  rescue_kit.attach(SERVO_PIN);
-  rescue_kit.write(SERVO_START_POS);
-  delay(1000);
-  rescue_kit.detach();
-  */
-  /*
-  for(;;) {
-    Serial.println(digitalRead(20));
-    delay(500);
-    for(uint16_t i=0; i<neo_pixel.numPixels(); i++) {
-      neo_pixel.setPixelColor(i, neo_pixel.Color(0, 0, 255));
-      neo_pixel.setPixelColor(neo_pixel.numPixels() - i, neo_pixel.Color(255, 0, 0));
-      neo_pixel.show();
-      delay(50);
-    }
-    for(uint16_t i=0; i<neo_pixel.numPixels(); i++) {
-      neo_pixel.setPixelColor(i, neo_pixel.Color(255, 0, 0));
-      neo_pixel.setPixelColor(neo_pixel.numPixels() - i, neo_pixel.Color(0, 0, 255));
-      neo_pixel.show();
-      delay(50);
-    }
-
-  } */
+  int16 mpu_buff[4] = { 0 };
 
   Robot robot;
   Robot *robot_ptr = &robot;
   init_robot(robot_ptr);
-  /*
-  while(1) {
-    turn_right_90(robot_ptr);
-    delay(500);
-    read_gyro(mpu_buff);
-    Serial.printf("\nangle: %i\n", mpu_buff[0]);
-    Serial.printf("D: %i\n", robot_ptr->d);
-    delay(1000);
-  }
-  */
 
+  Servo dropper;
+  init_dropper(&dropper);
+  while(!get_right_bumper());
+  turn_right_90(robot_ptr);
+  turn_right_90(robot_ptr);
+  delay(1000);
+  while(1);
+  reset_enc();
   for(;;) {
-
     read_gyro(mpu_buff);
-
+    /*
     Serial.printf("\nangle: %i\n", mpu_buff[0]);
     Serial.printf("acc_x: %i\n",   mpu_buff[1]);
     Serial.printf("acc_y: %i\n",   mpu_buff[2]);
     Serial.printf("acc_z: %i\n",   mpu_buff[3]);
-
-    Serial.printf("Light sensor %i\n", get_light_sensor());
+    Serial.printf("Light sensor %i\n", get_light_sensor()); */
 
     //read_heat_sensor(&rescue_kit);
-    //p_sync_forward(255);
+    p_sync_forward(255);
     delay(1);
   }
-
 }

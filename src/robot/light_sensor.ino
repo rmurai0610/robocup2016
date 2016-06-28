@@ -1,8 +1,8 @@
-int get_light_sensor(void) {
-  int val   = 0;
+uint16 get_light_sensor(void) {
+  uint16 val   = 0;
   led_on();
   val = analogRead(L_SENSOR);
-  return val; 
+  return val;
 }
 
 void led_off(void) {

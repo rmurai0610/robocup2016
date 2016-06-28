@@ -17,19 +17,25 @@ void read_heat_sensor(Servo *rescue_kit)
   }
 }
 
-void drop_rescue_kit(Servo *rescue_kit) {
-  rescue_kit->attach(SERVO_PIN);
+void drop_rescue_kit(Servo *dropper) {
+  dropper->attach(SERVO_PIN);
   delay(100);
   for(int i = SERVO_START_POS; i >= SERVO_END_POS; i-- ) {
-    rescue_kit->write(i);
+    dropper->write(i);
     delay(10);
   }
   for(int i = SERVO_END_POS; i <= SERVO_START_POS; i++) {
-    rescue_kit->write(i);
+    dropper->write(i);
     delay(10);
   }
   delay(100);
-  rescue_kit->detach();
-  delay(1000);
+  dropper->detach();
+}
+
+void init_dropper(Servo *dropper) {
+  dropper->attach(SERVO_PIN);
+  dropper->write(SERVO_START_POS);
+  delay(500);
+  dropper->detach();
 }
 

@@ -36,7 +36,7 @@
 #define L_SENSOR_LED_PIN 17
 #define L_SENSOR         16
 //Switch / Bumper
-#define L_BUMPER_PIN 22
-#define R_BUMPER_PIN 21
+#define R_BUMPER_PIN 22
+#define L_BUMPER_PIN 21
 #define RESET_BUTTON 20
 #endif

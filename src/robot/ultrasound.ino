@@ -9,7 +9,7 @@ float read_us(int echo_pin, int trig_pin) {
   delayMicroseconds(10);
   digitalWrite(trig_pin, LOW);
   //reads up to 50 cm
-  duration = pulseIn(echo_pin, HIGH, 50*58);
+  duration = pulseIn(echo_pin, HIGH, 50 * 58);
   speed = 331.4;
   distance = (duration / 2) * (speed / 10000);
   return distance;

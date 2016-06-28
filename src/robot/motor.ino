@@ -57,7 +57,6 @@ void motor_right_off(void) {
   digitalWrite(PIN_BIN2, LOW);
 }
 
-
 void motor_off(void) {
   motor_right_off();
   motor_left_off();

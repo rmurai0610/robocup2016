@@ -1,8 +1,3 @@
-extern int64_t encoder_val_l;
-extern int64_t encoder_val_r;
-extern motor_dir curr_dir_l;
-extern motor_dir curr_dir_r;
-
 void enc_l(void) {
   if(curr_dir_l == FORWARD) {
     encoder_val_l++;

@@ -8,8 +8,8 @@ uint8_t get_right_bumper(void) {
 }
 
 void reset(void) {
-  int val = 0;
-  for(int i = 0; i < 50; i++) {
+  int8 val = 0;
+  for(int8 i = 0; i < 50; i++) {
     if(!digitalRead(RESET_BUTTON)) {
       val++;
     }

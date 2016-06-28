@@ -118,6 +118,7 @@ void loop() {
   Robot robot;
   Robot *robot_ptr = &robot;
   init_robot(robot_ptr);
+  /*
   while(1) {
     turn_right_90(robot_ptr);
     delay(500);
@@ -126,6 +127,7 @@ void loop() {
     Serial.printf("D: %i\n", robot_ptr->d);
     delay(1000);
   }
+  */
 
   for(;;) {
 

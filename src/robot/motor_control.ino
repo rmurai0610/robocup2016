@@ -33,6 +33,7 @@ void turn_right_90(Robot *robot_ptr) {
   int16_t d_angle;
   Serial.println(mpu_buff[0]);
   for(;;) {
+    CHECK_RESET;
     read_gyro(mpu_buff);
     d_angle = delta_angle(init_angle, mpu_buff[0]);
     d_angle = delta_angle(target_angle, d_angle);
@@ -59,6 +60,7 @@ void turn_left_90(Robot *robot_ptr) {
   int16_t init_angle = mpu_buff[0];
   int16_t d_angle;
   for(;;) {
+    CHECK_RESET;
     read_gyro(mpu_buff);
     d_angle = delta_angle(init_angle, mpu_buff[0]);
     d_angle = delta_angle(target_angle, d_angle);

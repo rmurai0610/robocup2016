@@ -1,6 +1,12 @@
 #ifndef DEFS_H
 #define DEFS_H
 #include <WString.h>
+//Reset macro
+#define CHECK_RESET \
+  if(reset_signal) {\
+    motor_off();    \
+    break;          \
+  }                 \
 
 //type defs
 

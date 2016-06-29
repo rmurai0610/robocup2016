@@ -36,7 +36,109 @@ float read_us_bl(void) {
   return read_us(ECHO_PIN_BL, TRIG_PIN_BL);
 }
 
-
 float read_us_br(void) {
   return read_us(ECHO_PIN_BR, TRIG_PIN_BR);
+}
+
+float read_us_average_l(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
+}
+
+float read_us_average_r(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
+}
+
+float read_us_average_fl(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
+}
+
+float read_us_average_fr(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
+}
+
+float read_us_average_bl(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
+}
+
+
+float read_us_average_br(void) {
+  float acc_data = 0.0;
+  uint8 valid_data = 0;
+  for(inti = 0; i < 5; i++) {
+    float temp_val = read_us_l();
+    if(!temp_val) {
+      acc_data += temp_val;
+      valid_data++;
+    }
+  }
+  // avoid div by 0
+  if(valid_data) {
+    return acc_data / valid_data;
+  }
+  return 0;
 }

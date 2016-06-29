@@ -64,6 +64,8 @@ void setup() {
   // setup encoders
   attachInterrupt(ENC_L, enc_l, FALLING);
   attachInterrupt(ENC_R, enc_r, FALLING);
+  // setup reset button
+  attachInterrupt(RESET_BUTTON, reset, FALLING);
 
   // setup mpu sensor
   delay(500);
@@ -89,24 +91,29 @@ void loop() {
   Robot robot;
   Robot *robot_ptr = &robot;
   init_robot(robot_ptr);
+  
+  uint16 maze_floor_1[MAZE_SIZE * MAZE_SIZE];
+  uint16 maze_floor_2[MAZE_SIZE * MAZE_SIZE];
 
+  for (int i = 0; i < MAZE_SIZE * MAZE_SIZE; ++i) {
+    maze_floor_1[i] = 0xFF00u;
+    maze_floor_2[i] = 0xFF00u;
+  }
+  uint16 *maze[] = {maze_floor_1, maze_floor_2};
+  
   Servo dropper;
   init_dropper(&dropper);
+
+  while(1) {
+    while(!get_left_bumper());
+    move_forward_tile(maze, robot_ptr);
+  }
+
   while(!get_right_bumper());
-  turn_right_90(robot_ptr);
-  turn_right_90(robot_ptr);
   delay(1000);
-  while(1);
   reset_enc();
   for(;;) {
     read_gyro(mpu_buff);
-    /*
-    Serial.printf("\nangle: %i\n", mpu_buff[0]);
-    Serial.printf("acc_x: %i\n",   mpu_buff[1]);
-    Serial.printf("acc_y: %i\n",   mpu_buff[2]);
-    Serial.printf("acc_z: %i\n",   mpu_buff[3]);
-    Serial.printf("Light sensor %i\n", get_light_sensor()); */
-
     //read_heat_sensor(&rescue_kit);
     p_sync_forward(255);
     delay(1);

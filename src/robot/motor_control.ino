@@ -1,6 +1,49 @@
 void move_forward_tile(Maze maze, Robot *robot_ptr){
+  uint8_t d = robot_ptr->d;
+  set_visited(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
+  switch(d) {
+   case N:
+     if(robot_ptr->y < MAZE_Y) {
+       robot_ptr->y++;
+     }
+     break;
+   case E:
+     if(robot_ptr->x < MAZE_Y) {
+       robot_ptr->x++;
+     }
+     break;
+   case S:
+     if(robot_ptr->y) {
+       robot_ptr->y--;
+     }
+     break;
+   case W:
+     if(robot_ptr->x) {
+       robot_ptr->x--;
+     }
+     break;
+  }
+  reset_enc();
+  for(;;) {
+    CHECK_RESET;
+    if(encoder_val_l > 230 && encoder_val_r > 230) {
+      motor_off();
+      break;
+    }
+    if(get_left_bumper() || get_right_bumper()) {
+      //motor_off();
+      //break;
+    }
+    p_sync_forward(255);
+  }
+  align_robot();
   return;
 }
+
+void align_robot(void) {
+  
+}
+
 void limit_motor_speed(int16 *pow) {
   if(*pow > 255) {
     *pow = 255;
@@ -32,9 +75,6 @@ void turn_right_90(Robot *robot_ptr) {
   read_gyro(mpu_buff);
 
   int16 init_angle = mpu_buff[0];
-  //eg 9000, 0 = 9000
-  //   9000, 18000 = 9000
-  //   -18000,
   int16 target_angle = delta_angle(init_angle, get_target_angle(robot_ptr->d));
   Serial.printf("TARGET_ANGLE:%i\n", target_angle);
   int16 d_angle;
@@ -45,18 +85,22 @@ void turn_right_90(Robot *robot_ptr) {
     d_angle = delta_angle(init_angle, mpu_buff[0]);
     Serial.printf("ANGLE_turned:%i\n", d_angle);
     d_angle = delta_angle(d_angle, target_angle);
-    Serial.printf("ANGLE_LEFT:%i\n", d_angle);
+    Serial.printf("d_angle:%i\n", d_angle);
     if(d_angle < 100) {
       if(d_angle > -100) {
         motor_off();
-        break;
+        read_gyro(mpu_buff);
+        d_angle = delta_angle(init_angle, mpu_buff[0]);
+        d_angle = delta_angle(d_angle, target_angle);
+        if(-100 < d_angle && d_angle < 100) {
+          break;
+        }
       } else {
         turn_left(255);
       }
     } else {
       turn_right(255);
     }
-    delay(10);
   }
 }
 
@@ -68,19 +112,30 @@ void turn_left_90(Robot *robot_ptr) {
   } else {
     robot_ptr->d -= 1;
   }
-  int16 target_angle = get_target_angle(robot_ptr->d);
   int16 mpu_buff[4];
   read_gyro(mpu_buff);
+
   int16 init_angle = mpu_buff[0];
+  int16 target_angle = -delta_angle(init_angle, get_target_angle(robot_ptr->d));
+  Serial.printf("TARGET_ANGLE:%i\n", target_angle);
   int16 d_angle;
+  Serial.println(mpu_buff[0]);
   for(;;) {
     CHECK_RESET;
     read_gyro(mpu_buff);
-    d_angle = delta_angle(init_angle, mpu_buff[0]);
-    d_angle = delta_angle(target_angle, d_angle);
-    if(-100 <= d_angle && d_angle <= 100) {
-      motor_off();
-      break;
+    d_angle = -delta_angle(init_angle, mpu_buff[0]);
+    Serial.printf("ANGLE_turned:%i\n", d_angle);
+    d_angle = delta_angle(d_angle, target_angle);
+    Serial.printf("ANGLE_LEFT:%i\n", d_angle);
+    if(d_angle < 100) {
+      if(d_angle > -100) {
+        motor_off();
+        break;
+      } else {
+        turn_right(255);
+      }
+    } else {
+      turn_left(255);
     }
   }
 }

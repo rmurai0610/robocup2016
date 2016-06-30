@@ -1,13 +1,3 @@
-void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
-  if(!i) {
-    turn_left_90(robot_ptr);
-  } else if(i == 2) {
-    turn_right_90(robot_ptr);
-  } else if(i == 3) {
-    turn_right_90(robot_ptr);
-    turn_right_90(robot_ptr);
-  }
-}
 //returns 1 when it finishes solving maze
 uint8 maze_solver(Maze maze, Robot *robot_ptr) {
   //check for all 4 surrounding tile
@@ -81,9 +71,9 @@ uint8 maze_solver(Maze maze, Robot *robot_ptr) {
         //on the ramp tile!
       }
 
-
     }
   } else {
+    move_forward_tile(maze, robot_ptr);
     //shift the map is needed
     if(robot_ptr->d == W && !robot_ptr->x) {
       shift_maze_right(maze, robot_ptr);
@@ -91,9 +81,19 @@ uint8 maze_solver(Maze maze, Robot *robot_ptr) {
     if(robot_ptr->d == S && !robot_ptr->y) {
       shift_maze_up(maze, robot_ptr);
     }
-    move_forward_tile(maze, robot_ptr);
   }
   return 0;
+}
+
+void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
+  if(!i) {
+    turn_left_90(robot_ptr);
+  } else if(i == 2) {
+    turn_right_90(robot_ptr);
+  } else if(i == 3) {
+    turn_right_90(robot_ptr);
+    turn_right_90(robot_ptr);
+  }
 }
 
 uint8 lowest_neighbour(Maze maze, uint8 x, uint8 y, uint8 z) {
@@ -234,6 +234,7 @@ void go_to_next_unvisited(Maze maze, Robot *robot_ptr, uint8 nx, uint8 ny) {
       d++;
       d %= 4;
     }
+    move_forward_tile(maze, robot_ptr);
     //shift the map is needed
     if(robot_ptr->d == W && !robot_ptr->x) {
       shift_maze_right(maze, robot_ptr);
@@ -241,7 +242,7 @@ void go_to_next_unvisited(Maze maze, Robot *robot_ptr, uint8 nx, uint8 ny) {
     if(robot_ptr->d == S && !robot_ptr->y) {
       shift_maze_up(maze, robot_ptr);
     }
-    move_forward_tile(maze, robot_ptr);
+    
   } while(curr_val > 1);
 }
 

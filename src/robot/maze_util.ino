@@ -1,3 +1,54 @@
+#define DIST_WALL 20
+
+void update_wall(Maze maze, Robot *robot_ptr) {
+  uint8 d = robot_ptr->d;
+  int x = robot_ptr->x;
+  int y = robot_ptr->y;
+  int z = robot_ptr->z;
+  delay(10);
+  float us_l  = read_us_average_l();
+  delay(10);
+  float us_r  = read_us_average_r();
+  delay(10);
+  float us_fl = read_us_average_fl();
+  delay(10);
+  float us_fr = read_us_average_fr();
+  delay(10);
+  float us_bl = read_us_average_bl();
+  delay(10);
+  float us_br = read_us_average_br();
+  delay(10);
+  switch(d) {
+    case N:
+      set_west_wall(maze, x, y, z, sees_wall(us_l));
+      set_north_wall(maze, x, y, z, sees_wall(us_fl) && sees_wall(us_fr));
+      set_east_wall(maze, x, y, z, sees_wall(us_r));
+      set_south_wall(maze, x, y, z, sees_wall(us_bl) && sees_wall(us_br));
+      break;
+    case E:
+      set_north_wall(maze, x, y, z, sees_wall(us_l));
+      set_east_wall(maze, x, y, z, sees_wall(us_fl) && sees_wall(us_fr));
+      set_south_wall(maze, x, y, z, sees_wall(us_r));
+      set_west_wall(maze, x, y, z, sees_wall(us_bl) && sees_wall(us_br));
+      break;
+    case S:
+      set_east_wall(maze, x, y, z, sees_wall(us_l));
+      set_south_wall(maze, x, y, z, sees_wall(us_fl) && sees_wall(us_fr));
+      set_west_wall(maze, x, y, z, sees_wall(us_r));
+      set_north_wall(maze, x, y, z, sees_wall(us_bl) && sees_wall(us_br));
+      break;
+    case W:
+      set_south_wall(maze, x, y, z, sees_wall(us_l));
+      set_west_wall(maze, x, y, z, sees_wall(us_fl) && sees_wall(us_fr));
+      set_north_wall(maze, x, y, z, sees_wall(us_r));
+      set_east_wall(maze, x, y, z, sees_wall(us_bl) && sees_wall(us_br));
+      break;
+  }
+}
+
+uint8 sees_wall(float val) {
+  return (val > 1.0 && val < DIST_WALL);
+}
 
 /*make space on the right hand side of the array*/
 void shift_maze_right(Maze maze, Robot *robot_ptr) {

@@ -15,31 +15,4 @@
 #define SAVED_TILE_MASK     0x0040u
 #define RAMP_TILE_MASK      0x0080u
 
-void shift_maze_right(Maze, Robot*);
-void shift_maze_up(Maze, Robot*);
-
-uint8 get_west_wall(Maze, uint8, uint8, uint8);
-uint8 get_south_wall(Maze, uint8, uint8, uint8);
-uint8 get_east_wall(Maze, uint8, uint8, uint8);
-uint8 get_north_wall(Maze, uint8, uint8, uint8);
-
-uint8 is_visited(Maze, uint8, uint8, uint8);
-uint8 is_checkpoint(Maze, uint8, uint8, uint8);
-uint8 is_saved_tile(Maze, uint8, uint8, uint8);
-uint8 is_ramp_tile(Maze, uint8, uint8, uint8);
-
-uint8 get_val(Maze, uint8, uint8, uint8);
-
-void set_west_wall(Maze, uint8, uint8, uint8, uint8);
-void set_south_wall(Maze, uint8, uint8, uint8, uint8);
-void set_east_wall(Maze, uint8, uint8, uint8, uint8);
-void set_north_wall(Maze, uint8, uint8, uint8, uint8);
-
-void set_visited(Maze, uint8, uint8, uint8, uint8);
-void set_checkpoint(Maze, uint8, uint8, uint8, uint8);
-void set_saved_tile(Maze, uint8, uint8, uint8, uint8);
-void set_ramp_tile(Maze, uint8, uint8, uint8, uint8);
-
-void set_val(Maze, uint8, uint8, uint8, uint8);
-
 #endif

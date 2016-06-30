@@ -24,16 +24,17 @@ motor_dir curr_dir_r   = FORWARD;
 
 //for reset
 uint8 reset_signal = 0;
-//To allow any function to access neo pixel easily
+//To allow any function to access neo pixel and servo easily
 Adafruit_NeoPixel neo_pixel = Adafruit_NeoPixel(8, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Servo dropper;
 
 void init_robot(Robot *robot) {
-  robot->x = 0;
-  robot->y = 0;
-  robot->z = 0;
+  robot->x = 1;
+  robot->y = 1;
+  robot->z = 1;
   robot->d = N;
-  robot->start_tile_x = 0;
-  robot->start_tile_y = 0;
+  robot->start_tile_x = 1;
+  robot->start_tile_y = 1;
 }
 
 void setup() {
@@ -49,7 +50,7 @@ void setup() {
   int outputs[] = { PIN_AIN1, PIN_AIN2, PIN_BIN1,
                     PIN_BIN2, PIN_PWMA, PIN_PWMB, STAND_BY,
                     TRIG_PIN_R, TRIG_PIN_L,
-                    MPU_RESET_PIN, L_SENSOR_LED_PIN };
+                    IMU_RESET_PIN, L_SENSOR_LED_PIN };
   int inputs[]  = { ENC_L, ENC_R,
                     ECHO_PIN_L, ECHO_PIN_R, ECHO_PIN_FL, ECHO_PIN_FR, ECHO_PIN_BL, ECHO_PIN_BR,
                     L_BUMPER_PIN, R_BUMPER_PIN, RESET_BUTTON };
@@ -67,9 +68,9 @@ void setup() {
   // setup reset button
   attachInterrupt(RESET_BUTTON, reset, FALLING);
 
-  // setup mpu sensor
+  // setup imu sensor
   delay(500);
-  reset_mpu();
+  reset_imu();
 
   // setup neo_pixel
   neo_pixel.begin();
@@ -86,7 +87,7 @@ void setup() {
 }
 
 void loop() {
-  int16 mpu_buff[4] = { 0 };
+  int16 imu_buff[4] = { 0 };
 
   Robot robot;
   Robot *robot_ptr = &robot;
@@ -100,22 +101,40 @@ void loop() {
     maze_floor_2[i] = 0xFF00u;
   }
   uint16 *maze[] = {maze_floor_1, maze_floor_2};
-  
-  Servo dropper;
-  init_dropper(&dropper);
-
+  /*
   while(1) {
-    while(!get_left_bumper());
-    move_forward_tile(maze, robot_ptr);
-  }
+    Serial.printf("L:%f\n",read_us_average_l());
+    delay(10);
+    Serial.printf("R:%f\n",read_us_average_r());
+    delay(10);
+    Serial.printf("FL:%f\n",read_us_average_fl());
+    delay(10);
+    Serial.printf("FR:%f\n",read_us_average_fr());
+    delay(10);
+    Serial.printf("BL:%f\n",read_us_average_bl());
+    delay(10);
+    Serial.printf("BR:%f\n",read_us_average_br());
+    delay(1000);   
+  }   */
 
-  while(!get_right_bumper());
-  delay(1000);
+  
+  init_dropper();
   reset_enc();
+
+  while(!get_left_bumper());
+  delay(1000);
+  reset_imu();
+  reset_enc();
+  align_robot();
   for(;;) {
-    read_gyro(mpu_buff);
+    Serial.printf("robot x:%i y:%i z:%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z);
+    update_wall(maze, robot_ptr);
     //read_heat_sensor(&rescue_kit);
-    p_sync_forward(255);
-    delay(1);
+    maze_solver(maze, robot_ptr);
+    neo_pixel.setPixelColor(0, neo_pixel.Color(255, 0, 255));
+    neo_pixel.show();
+    delay(100);
+    neo_pixel.setPixelColor(0, 0);
+    neo_pixel.show();
   }
 }

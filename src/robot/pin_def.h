@@ -26,8 +26,8 @@
 #define TRIG_PIN_R  10
 #define TRIG_PIN_FL 10
 #define TRIG_PIN_BL 10
-//MPU
-#define MPU_RESET_PIN 2
+//IMU
+#define IMU_RESET_PIN 2
 //Servo
 #define SERVO_PIN 3
 //NeoPixle

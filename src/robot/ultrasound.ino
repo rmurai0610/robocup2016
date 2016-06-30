@@ -1,5 +1,4 @@
 float read_us(int echo_pin, int trig_pin) {
-
   float duration, distance;
   float speed;
 
@@ -43,11 +42,14 @@ float read_us_br(void) {
 float read_us_average_l(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
+  for(int i = 0; i < 5; i++) {
     float temp_val = read_us_l();
-    if(!temp_val) {
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0
@@ -60,11 +62,14 @@ float read_us_average_l(void) {
 float read_us_average_r(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
-    float temp_val = read_us_l();
-    if(!temp_val) {
+  for(int i = 0; i < 5; i++) {
+    float temp_val = read_us_r();
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0
@@ -77,11 +82,14 @@ float read_us_average_r(void) {
 float read_us_average_fl(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
-    float temp_val = read_us_l();
-    if(!temp_val) {
+  for(int i = 0; i < 5; i++) {
+    float temp_val = read_us_fl();
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0
@@ -94,11 +102,14 @@ float read_us_average_fl(void) {
 float read_us_average_fr(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
-    float temp_val = read_us_l();
-    if(!temp_val) {
+  for(int i = 0; i < 5; i++) {
+    float temp_val = read_us_fr();
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0
@@ -111,11 +122,14 @@ float read_us_average_fr(void) {
 float read_us_average_bl(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
-    float temp_val = read_us_l();
-    if(!temp_val) {
+  for(int i = 0; i < 5; i++) {
+    float temp_val = read_us_bl();
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0
@@ -129,11 +143,14 @@ float read_us_average_bl(void) {
 float read_us_average_br(void) {
   float acc_data = 0.0;
   uint8 valid_data = 0;
-  for(inti = 0; i < 5; i++) {
-    float temp_val = read_us_l();
-    if(!temp_val) {
+  for(int i = 0; i < 5; i++) {
+    float temp_val = read_us_br();
+    delay(10);
+    if(temp_val > 1.0) {
       acc_data += temp_val;
       valid_data++;
+    } else {
+      return 0;
     }
   }
   // avoid div by 0

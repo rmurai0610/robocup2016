@@ -3,9 +3,10 @@ byte serial_read(void) {
   return Serial1.read();
 }
 
-void read_gyro(int16_t *mpu_buff) {
+void read_gyro(int16_t *imu_buff) {
   byte buff[13];
   int check_sum = 0;
+  uint8 succ = 0;
   for (int i = 0; i < 3; i++) {
     byte d0 = serial_read();
     byte d1 = serial_read();
@@ -15,17 +16,21 @@ void read_gyro(int16_t *mpu_buff) {
     Serial1.flush();
     if ((check_sum & 0xff) == buff[12]) {
       //safe to read the value off sensor
-      mpu_buff[0] = (buff[2]  << 8 | buff[1]);
-      mpu_buff[1] = (buff[6]  << 8 | buff[5]);
-      mpu_buff[2] = (buff[8]  << 8 | buff[7]);
-      mpu_buff[3] = (buff[10] << 8 | buff[9]);
+      imu_buff[0] = (buff[2]  << 8 | buff[1]);
+      imu_buff[1] = (buff[6]  << 8 | buff[5]);
+      imu_buff[2] = (buff[8]  << 8 | buff[7]);
+      imu_buff[3] = (buff[10] << 8 | buff[9]);
+      succ = 1;
     }
+  }
+  if(!succ) {
+    Serial.printf("FAILED!\n");
   }
 }
 
-void reset_mpu(void) {
-  digitalWrite(MPU_RESET_PIN, LOW);
-  digitalWrite(MPU_RESET_PIN, HIGH);
+void reset_imu(void) {
+  digitalWrite(IMU_RESET_PIN, LOW);
+  digitalWrite(IMU_RESET_PIN, HIGH);
   delay(500);
 }
 
@@ -46,13 +51,13 @@ int16_t delta_angle(int16_t init_angle, int16_t curr_angle) {
 //calculate the pitch
 float get_pitch(void) {
   const float alpha = 0.5;
-  int16 mpu_buff[4] = { 0 };
-  read_gyro(mpu_buff);
+  int16 imu_buff[4] = { 0 };
+  read_gyro(imu_buff);
   static int16_t fx;
   static int16_t fy;
   static int16_t fz;
-  fx = mpu_buff[1] * alpha + (fx * (1.0 - alpha));
-  fy = mpu_buff[2] * alpha + (fy * (1.0 - alpha));
-  fz = mpu_buff[3] * alpha + (fz * (1.0 - alpha));
+  fx = imu_buff[1] * alpha + (fx * (1.0 - alpha));
+  fy = imu_buff[2] * alpha + (fy * (1.0 - alpha));
+  fz = imu_buff[3] * alpha + (fz * (1.0 - alpha));
   return (atan2(fx, sqrt(fy * fy + fz * fz)) * 180.0) / M_PI;
 }

@@ -10,11 +10,14 @@
 #define TPA81_LEFT   0x68
 
 //variable
-#define P_FORWARD 0.5
-#define VICTIM_TEMP 40
-#define SERVO_START_POS 140
-#define SERVO_END_POS 65
-
+#define P_FORWARD          0.5
+#define VICTIM_TEMP        35
+#define SERVO_START_POS    140
+#define SERVO_END_POS      65
+#define DIST_WALL          20
+#define RAMP_ANGLE         14
+#define SILVER             150
+#define BLACK              50
 
 //global variable to handle interrupts
 int32 encoder_val_l = 0;
@@ -27,14 +30,55 @@ uint8 reset_signal = 0;
 //To allow any function to access neo pixel and servo easily
 Adafruit_NeoPixel neo_pixel = Adafruit_NeoPixel(8, NEO_PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 Servo dropper;
+void calibrate_mode() {
+  while(1) {
+    if(read_heat_sensor(TPA81_LEFT)) {
+      flash_all(neo_pixel.Color(0, 0, 255), 500);
+    }
+    if(read_heat_sensor(TPA81_RIGHT)) {
+      flash_all(neo_pixel.Color(0, 0, 255), 500);
+    }
+  }
+}
 
 void init_robot(Robot *robot) {
   robot->x = 1;
   robot->y = 1;
-  robot->z = 1;
+  robot->z = 0;
   robot->d = N;
   robot->start_tile_x = 1;
   robot->start_tile_y = 1;
+  robot->last_check_point_x = robot->x;
+  robot->last_check_point_y = robot->y;
+  robot->last_check_point_z = robot->z;
+}
+
+void reset_robot(Maze maze, Robot *robot) {
+  robot->x = robot->last_check_point_x;
+  robot->y = robot->last_check_point_y;
+  robot->z = robot->last_check_point_z;
+  //maybe write a function to confirm this fact?
+  robot->d = N;
+  for(int z = 0; z < 2; z++) {
+    for(int y = 0; y < MAZE_Y; y++) {
+      for(int x = 0; x < MAZE_X; x++) {
+        if(!is_saved(maze, x, y, z)) {
+          maze[z][x + y * MAZE_X] = 0xFF00u;
+        }
+      }
+    }
+  }
+  while(!get_left_bumper());
+  print_binary(robot->x, 1000, neo_pixel.Color(255, 0, 0));
+  print_binary(robot->x, 1000, neo_pixel.Color(0, 255, 0));
+  reset_signal = 0;
+  color_wipe(neo_pixel.Color(255, 0, 0), 100);
+  delay(100);
+  neo_pixel_clear();
+  //umm???/////////////////////////////////////////////////////////
+  for(int i = 0; i < 5; i++) {
+    reset_imu();
+  }
 }
 
 void setup() {
@@ -67,22 +111,17 @@ void setup() {
   attachInterrupt(ENC_R, enc_r, FALLING);
   // setup reset button
   attachInterrupt(RESET_BUTTON, reset, FALLING);
-
-  // setup imu sensor
-  delay(500);
-  reset_imu();
-
   // setup neo_pixel
   neo_pixel.begin();
   neo_pixel.show();
   motor_start();
-  //
-  neo_pixel.setPixelColor(0, neo_pixel.Color(0, 0, 255));
-  neo_pixel.show();
-  delay(500);
-  neo_pixel.setPixelColor(0, 0);
-  neo_pixel.show();
+  color_wipe(neo_pixel.Color(0, 0,  255), 100);
   delay(100);
+  neo_pixel_clear();
+
+  // setup imu sensor
+  delay(500);
+  reset_imu();
   Serial.println("Running");
 }
 
@@ -92,17 +131,28 @@ void loop() {
   Robot robot;
   Robot *robot_ptr = &robot;
   init_robot(robot_ptr);
-  
+
   uint16 maze_floor_1[MAZE_SIZE * MAZE_SIZE];
   uint16 maze_floor_2[MAZE_SIZE * MAZE_SIZE];
-
+  
+  uint16 maze_floor_1_copy[MAZE_SIZE * MAZE_SIZE];
+  uint16 maze_floor_2_copy[MAZE_SIZE * MAZE_SIZE];
+  
   for (int i = 0; i < MAZE_SIZE * MAZE_SIZE; ++i) {
     maze_floor_1[i] = 0xFF00u;
     maze_floor_2[i] = 0xFF00u;
   }
-  uint16 *maze[] = {maze_floor_1, maze_floor_2};
+  uint16 *maze[]      = {maze_floor_1, maze_floor_2};
+  uint16 *maze_copy[] = {maze_floor_1_copy, maze_floor_2_copy};
+  maze_copy = maze;
+  Serial.println(maze_copy[0][0]);
+  set_val(maze, 0,0,0,0);
+  Serial.println(maze_copy[0][0]);
+  while(1);
+  
   /*
   while(1) {
+    Serial.printf("LIGHT: %i\n", get_light_sensor());
     Serial.printf("L:%f\n",read_us_average_l());
     delay(10);
     Serial.printf("R:%f\n",read_us_average_r());
@@ -114,27 +164,41 @@ void loop() {
     Serial.printf("BL:%f\n",read_us_average_bl());
     delay(10);
     Serial.printf("BR:%f\n",read_us_average_br());
-    delay(1000);   
+    delay(1000);
   }   */
 
-  
   init_dropper();
   reset_enc();
-
+  flash_all(neo_pixel.Color(0, 0, 255), 500);
   while(!get_left_bumper());
   delay(1000);
   reset_imu();
   reset_enc();
+
   align_robot();
   for(;;) {
-    Serial.printf("robot x:%i y:%i z:%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z);
+    //Serial.printf("robot x:%i y:%i z:%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z);
+   for(int y = 0; y < 10; y++) {
+      for(int x = 0; x < 10; x++) {
+        Serial.printf("%i ", (uint8) maze[robot_ptr->z][robot_ptr->x + robot_ptr->y * MAZE_X]);
+      }
+      Serial.printf("\n");
+    } 
+    
     update_wall(maze, robot_ptr);
-    //read_heat_sensor(&rescue_kit);
-    maze_solver(maze, robot_ptr);
-    neo_pixel.setPixelColor(0, neo_pixel.Color(255, 0, 255));
-    neo_pixel.show();
-    delay(100);
-    neo_pixel.setPixelColor(0, 0);
-    neo_pixel.show();
+    if(maze_solver(maze, robot_ptr)  && !reset_signal) {
+      //finished maze
+      for(;;) {
+        rainbow(100);
+      }
+    }
+    
+    if(reset_signal) {
+      reset_robot(maze, robot_ptr);
+    }
+    flash_all(neo_pixel.Color(255, 0, 255), 500);
+    //print_binary(robot_ptr->x, 500, neo_pixel.Color(255, 0, 0));
+    //print_binary(robot_ptr->x, 500, neo_pixel.Color(0, 255, 0));
+    Serial.printf("X: %i Y:%i\n", robot_ptr->x, robot_ptr->y);
   }
 }

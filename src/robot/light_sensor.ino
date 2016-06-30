@@ -12,4 +12,3 @@ void led_off(void) {
 void led_on(void) {
   digitalWrite(L_SENSOR_LED_PIN, HIGH);
 }
-

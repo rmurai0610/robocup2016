@@ -70,16 +70,11 @@ uint8 maze_solver(Maze maze, Robot *robot_ptr) {
       } else {
         //on the ramp tile!
       }
-
     }
   } else {
     move_forward_tile(maze, robot_ptr);
-    //shift the map is needed
-    if(robot_ptr->d == W && !robot_ptr->x) {
-      shift_maze_right(maze, robot_ptr);
-    }
-    if(robot_ptr->d == S && !robot_ptr->y) {
-      shift_maze_up(maze, robot_ptr);
+    if(reset_signal) {
+      return 0;
     }
   }
   return 0;
@@ -92,6 +87,7 @@ void turn_to_new_tile(uint8 i, Robot *robot_ptr) {
     turn_right_90(robot_ptr);
   } else if(i == 3) {
     turn_right_90(robot_ptr);
+    align_robot();
     turn_right_90(robot_ptr);
   }
 }
@@ -119,11 +115,24 @@ uint8 lowest_neighbour(Maze maze, uint8 x, uint8 y, uint8 z) {
   return lowest_val;
 }
 
+void find_ramp_tile(Maze maze, Robot *robot_ptr, uint8 *ramp_x, uint8 *ramp_y) {
+  uint8 z = robot_ptr->z;
+  for(int y = 0; y < MAZE_Y; y++) {
+    for(int x = 0; x < MAZE_X; x++) {
+      if(is_ramp_tile(maze, x, y, z)) {
+        *ramp_x = x;
+        *ramp_y = y;
+      }
+    }
+  }
+}
+
 /*
  * 0 -> no new tile found return to start/ramp tile
  * 1 -> found new tile and got to it
  */
 uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
+  flash_all(neo_pixel.Color(100, 255, 30), 500);
   // set the start point
   uint8 z = robot_ptr->z;
   for (int y = 0; y < MAZE_Y; ++y) {
@@ -154,8 +163,13 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
     if(end_search) {
       //on the non starting floor
       if(robot_ptr->z) {
+        flash_all(neo_pixel.Color(0, 255, 0), 500);
+        uint8 ramp_x, ramp_y;
+        find_ramp_tile(maze, robot_ptr, &ramp_x, &ramp_y);
+        go_to_next_unvisited(maze, robot_ptr, ramp_x, ramp_y);
       } else {
         //otherwise go back to start tile
+        flash_all(neo_pixel.Color(0, 255, 0), 500);
         go_to_next_unvisited(maze, robot_ptr, robot_ptr->start_tile_x, robot_ptr->start_tile_y);
       }
       return 0;
@@ -164,6 +178,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
 }
 
 void go_to_next_unvisited(Maze maze, Robot *robot_ptr, uint8 nx, uint8 ny) {
+  flash_all(neo_pixel.Color(30, 100, 30), 500);
   uint8 z = robot_ptr->z;
   for (int y = 0; y < MAZE_Y; ++y) {
     for (int x = 0; x < MAZE_X; ++x) {
@@ -235,14 +250,9 @@ void go_to_next_unvisited(Maze maze, Robot *robot_ptr, uint8 nx, uint8 ny) {
       d %= 4;
     }
     move_forward_tile(maze, robot_ptr);
-    //shift the map is needed
-    if(robot_ptr->d == W && !robot_ptr->x) {
-      shift_maze_right(maze, robot_ptr);
+    if(reset_signal) {
+      break;
     }
-    if(robot_ptr->d == S && !robot_ptr->y) {
-      shift_maze_up(maze, robot_ptr);
-    }
-    
   } while(curr_val > 1);
 }
 

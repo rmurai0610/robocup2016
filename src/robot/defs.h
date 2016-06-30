@@ -30,6 +30,9 @@ typedef struct {
   uint8 d;
   uint8 start_tile_x;
   uint8 start_tile_y;
+  uint8 last_check_point_x;
+  uint8 last_check_point_y;
+  uint8 last_check_point_z;
 } Robot;
 
 typedef uint16_t** Maze;

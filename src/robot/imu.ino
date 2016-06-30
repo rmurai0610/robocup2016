@@ -38,11 +38,9 @@ void reset_imu(void) {
 int16_t delta_angle(int16_t init_angle, int16_t curr_angle) {
   int16_t d_angle = curr_angle - init_angle;
   if(d_angle > 18000) {
-    Serial.println("Bigger than 18000");
     d_angle -= 36000;
   }
   if(d_angle < -18000) {
-    Serial.println("smaller than 18000");
     d_angle += 36000;
   }
   return d_angle;

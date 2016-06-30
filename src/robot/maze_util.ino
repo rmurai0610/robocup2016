@@ -1,4 +1,55 @@
-#define DIST_WALL 20
+void mark_tile_unreachable(Maze maze, Robot *robot_ptr) {
+  uint8 d = robot_ptr->d;
+  uint8 x = robot_ptr->x;
+  uint8 y = robot_ptr->y;
+  uint8 z = robot_ptr->z;
+  set_north_wall(maze, x, y, z, 1);
+  set_east_wall(maze, x, y, z, 1);
+  set_south_wall(maze, x, y, z, 1);
+  set_east_wall(maze, x, y, z, 1);
+  set_visited(maze, x, y, z, 1);
+  switch(d) {
+   case N:
+     if(y < MAZE_Y) {
+       robot_ptr->y--;
+     }
+     break;
+   case E:
+     if(x < MAZE_Y) {
+       robot_ptr->x--;
+     }
+     break;
+   case S:
+     if(y) {
+       robot_ptr->y++;
+     }
+     break;
+   case W:
+     if(x) {
+       robot_ptr->x++;
+     }
+     break;
+  }
+  while(encoder_val_l > 0 || encoder_val_r > 0) {
+    move_backward(255);
+  }
+  motor_off();
+}
+
+void reached_checkpoint(Maze maze, Robot *robot_ptr) {
+   robot_ptr->last_check_point_x = robot_ptr->x;
+   robot_ptr->last_check_point_y = robot_ptr->y;
+   robot_ptr->last_check_point_z = robot_ptr->z;
+   for(int z = 0; z < 2; z++) {
+    for(int y = 0; y < MAZE_Y; y++) {
+      for(int x = 0; x < MAZE_X; x++) {
+        if(is_visited(maze, x, y, z)) {
+          set_saved_tile(maze, x, y, z, 1);
+        }
+      }
+    }
+  }
+}
 
 void update_wall(Maze maze, Robot *robot_ptr) {
   uint8 d = robot_ptr->d;
@@ -18,6 +69,7 @@ void update_wall(Maze maze, Robot *robot_ptr) {
   delay(10);
   float us_br = read_us_average_br();
   delay(10);
+
   switch(d) {
     case N:
       set_west_wall(maze, x, y, z, sees_wall(us_l));
@@ -60,7 +112,12 @@ void shift_maze_right(Maze maze, Robot *robot_ptr) {
     }
     maze[z][0 + y * MAZE_X] = 0;
   }
-  robot_ptr->start_tile_x++;
+  if(!z) {
+    robot_ptr->start_tile_x++;
+  }
+  if(robot_ptr->last_check_point_z == z) {
+    robot_ptr->last_check_point_x++;
+  }
   robot_ptr->x++;
 }
 
@@ -74,7 +131,12 @@ void shift_maze_up(Maze maze, Robot *robot_ptr) {
     }
     maze[z][x] = 0;
   }
-  robot_ptr->start_tile_y++;
+  if(!z) {
+    robot_ptr->start_tile_y++;
+  }
+  if(robot_ptr->last_check_point_z == z) {
+    robot_ptr->last_check_point_y++;
+  }
   robot_ptr->y++;
 }
 
@@ -110,7 +172,7 @@ uint8 get_east_wall(Maze maze, uint8 x, uint8 y, uint8 z) {
 }
 
 uint8 get_north_wall(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > (MAZE_Y - 1) || z > MAZE_Z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
     /*out of bound request*/
     return 0;
   }
@@ -118,10 +180,45 @@ uint8 get_north_wall(Maze maze, uint8 x, uint8 y, uint8 z) {
   return curr_tile & SOUTH_WALL_MASK;
 }
 
-uint8 is_visited(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > (MAZE_Y - 1) || z > MAZE_Z) {
+uint8 get_west_victim(Maze maze, uint8 x, uint8 y, uint8 z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
     /*out of bound request*/
-    /*return 1 as I don't want to target these cells*/
+    return 0;
+  }
+  uint8 curr_tile = maze[z][x + y * MAZE_X];
+  return curr_tile & WEST_WALL_VIC_MASK;
+}
+
+uint8 get_south_victim(Maze maze, uint8 x, uint8 y, uint8 z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return 0;
+  }
+  uint8 curr_tile = maze[z][x + y * MAZE_X];
+  return curr_tile & SOUTH_WALL_VIC_MASK;
+}
+
+uint8 get_east_victim(Maze maze, uint8 x, uint8 y, uint8 z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return 0;
+  }
+  uint8 curr_tile = maze[z][(x + 1) + y * MAZE_X];
+  return curr_tile & WEST_WALL_VIC_MASK;
+}
+
+uint8 get_north_victim(Maze maze, uint8 x, uint8 y, uint8 z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return 0;
+  }
+  uint8 curr_tile = maze[z][x + (y + 1) * MAZE_X];
+  return curr_tile & SOUTH_WALL_VIC_MASK;
+}
+
+uint8 is_visited(Maze maze, uint8 x, uint8 y, uint8 z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
     return 1;
   }
   uint8 curr_tile = maze[z][x + y * MAZE_X];
@@ -129,9 +226,8 @@ uint8 is_visited(Maze maze, uint8 x, uint8 y, uint8 z) {
 }
 
 uint8 is_checkpoint(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > (MAZE_Y - 1) || z > MAZE_Z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
     /*out of bound request*/
-    /*return 1 as I don't want to target these cells*/
     return 1;
   }
   uint8 curr_tile = maze[z][x + y * MAZE_X];
@@ -139,9 +235,8 @@ uint8 is_checkpoint(Maze maze, uint8 x, uint8 y, uint8 z) {
 }
 
 uint8 is_saved(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > (MAZE_Y - 1) || z > MAZE_Z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
     /*out of bound request*/
-    /*return 1 as I don't want to target these cells*/
     return 1;
   }
   uint8 curr_tile = maze[z][x + y * MAZE_X];
@@ -149,9 +244,8 @@ uint8 is_saved(Maze maze, uint8 x, uint8 y, uint8 z) {
 }
 
 uint8 is_ramp_tile(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > (MAZE_Y - 1) || z > MAZE_Z) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
     /*out of bound request*/
-    /*return 1 as I don't want to target these cells*/
     return 1;
   }
   uint8 curr_tile = maze[z][x + y * MAZE_X];
@@ -159,8 +253,8 @@ uint8 is_ramp_tile(Maze maze, uint8 x, uint8 y, uint8 z) {
 }
 
 uint8 get_val(Maze maze, uint8 x, uint8 y, uint8 z) {
-  if(x > MAZE_Y || y > MAZE_Y || z > MAZE_Z) {
-    //out of bound request
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
     return 1;
   }
   uint16 curr_tile = maze[z][x + y * MAZE_X];
@@ -224,6 +318,63 @@ void set_north_wall(Maze maze, uint8 x, uint8 y, uint8 z, uint8 value) {
   } else {
     /*set the wall to 0*/
     maze[z][x + (y + 1) * MAZE_X] &= ~SOUTH_WALL_MASK;
+  }
+}
+
+void set_west_victim(Maze maze, uint8 x, uint8 y, uint8 z, uint8 value) {
+  if(x > MAZE_X || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return;
+  }
+  if(value) {
+    /*set the wall to 1*/
+    maze[z][x + y * MAZE_X] |= WEST_WALL_VIC_MASK;
+  } else {
+    /*set the wall to 0*/
+    maze[z][x + y * MAZE_X] &= ~WEST_WALL_VIC_MASK;
+  }
+}
+
+void set_south_victim(Maze maze, uint8 x, uint8 y, uint8 z, uint8 value) {
+  if(x > MAZE_X || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return;
+  }
+  if(value) {
+    /*set the wall to 1*/
+    maze[z][x + y * MAZE_X] |= SOUTH_WALL_VIC_MASK;
+  } else {
+    /*set the wall to 0*/
+    maze[z][x + y * MAZE_X] &= ~SOUTH_WALL_VIC_MASK;
+  }
+}
+
+void set_east_victim(Maze maze, uint8 x, uint8 y, uint8 z, uint8 value) {
+  if(x > (MAZE_X - 1) || y > MAZE_Y || z > MAZE_Z) {
+    /*out of bound request*/
+    return;
+  }
+  if(value) {
+    /*set the wall to 1*/
+    maze[z][(x + 1) + y * MAZE_X] |= WEST_WALL_VIC_MASK;
+  } else {
+    /*set the wall to 0*/
+    maze[z][(x + 1) + y * MAZE_X] &= ~WEST_WALL_VIC_MASK;
+  }
+
+}
+
+void set_north_victim(Maze maze, uint8 x, uint8 y, uint8 z, uint8 value) {
+  if(x > MAZE_X || y > (MAZE_Y - 1) || z > MAZE_Z) {
+    /*out of bound request*/
+    return;
+  }
+  if(value) {
+    /*set the wall to 1*/
+    maze[z][x + (y + 1) * MAZE_X] |= SOUTH_WALL_VIC_MASK;
+  } else {
+    /*set the wall to 0*/
+    maze[z][x + (y + 1) * MAZE_X] &= ~SOUTH_WALL_VIC_MASK;
   }
 }
 

@@ -497,6 +497,7 @@ int16_t get_target_angle(uint8_t d) {
     case W:
       return -9000;
   }
+  return 0;
 }
 
 void avoid_left(void) {
@@ -572,30 +573,29 @@ void set_ramp_tile(Maze maze, Robot *robot_ptr) {
 }
 
 void add_ramp_tiles(Maze maze, Robot *robot_ptr) {
-  set_ramp_tile(maze, robot_ptr);
   for(int i = 0; i < 7; i++) {
     switch(robot_ptr->d) {
       case N:
-        robot_ptr->y++;
         set_ramp_tile(maze, robot_ptr);
+        robot_ptr->y++;
         break;
       case E:
-        robot_ptr->x++;
         set_ramp_tile(maze, robot_ptr);
+        robot_ptr->x++;
         break;
       case W:
         if(robot_ptr->x == 1) {
-          set_ramp_tile(maze, robot_ptr);
+          shift_maze_right(maze, robot_ptr);
         }
-        robot_ptr->x--;
         set_ramp_tile(maze, robot_ptr);
+        robot_ptr->x--;
         break;
       case S:
         if(robot_ptr->y == 1) {
-          set_ramp_tile(maze, robot_ptr);
+          shift_maze_up(maze, robot_ptr);
         }
-        robot_ptr->y--;
         set_ramp_tile(maze, robot_ptr);
+        robot_ptr->y--;
         break;
     }
   }
@@ -605,7 +605,6 @@ void add_ramp_tiles(Maze maze, Robot *robot_ptr) {
 void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
 
   add_ramp_tiles(maze, robot_ptr);
-  delay(100);
   int16 speed_setting = 255;
   if(!up) {
     speed_setting = 180;
@@ -647,7 +646,7 @@ void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
       delay(500);
       motor_off();
       break;
-    }
+    } 
     p_sync_forward(speed_setting);
   }
   us_l = read_us_average_l();

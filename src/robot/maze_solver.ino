@@ -146,23 +146,20 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
         if(lowest_val && get_val(maze, x, y, z) == 255) {
           set_val(maze, x, y, z, lowest_val + 1);
           if(!is_visited(maze, x, y, z)) {
+            //go_to_next_unvisited(maze, robot_ptr, x, y); 
+            //return 1;
             
-            
-            go_to_next_unvisited(maze, robot_ptr, x, y); 
-            return 1;
-            /*
             if(min_val > lowest_val + 1) {
               min_x = x;
               min_y = y;
               min_val = lowest_val + 1;
-            }  */
-            
+            }     
           }
           end_search = 0;
         }
       }
     }
-    if(end_search) {
+    if(end_search && min_val == 255) {
       //on the non starting floor
       if(robot_ptr->z) {
         flash_all(neo_pixel.Color(0, 255, 0), 500);
@@ -174,11 +171,10 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
       }
       return 0;
     } 
-    /*
     if(end_search) {
-      //go_to_next_unvisited(maze, robot_ptr, min_x, min_y);
-      //return 1;
-    } */
+      go_to_next_unvisited(maze, robot_ptr, min_x, min_y);
+      return 1;
+    }
   }
 }
 

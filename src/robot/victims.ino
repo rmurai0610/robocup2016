@@ -1,6 +1,5 @@
 uint8 read_heat_sensor(int address)
 {
-  byte heat_sensor_buff[8];
   for (int i = 0; i < 8; i++) {
     Wire.beginTransmission(address);
     Wire.write(i + 2);
@@ -9,7 +8,6 @@ uint8 read_heat_sensor(int address)
     while (Wire.available() > 1) { /* do nothing */}
     byte b = Wire.read();
     //read TPA81 and store data onto array
-    heat_sensor_buff[i] = b;
     if(b > VICTIM_TEMP) {
       return 1;
     }

@@ -129,7 +129,6 @@ void setup() {
 }
 
 void loop() {
-  int16 imu_buff[4] = { 0 };
 
   Robot robot;
   Robot *robot_ptr = &robot;

@@ -44,10 +44,6 @@ void reached_checkpoint(Maze maze, Robot *robot) {
   robot_copy.d            = robot->d;
   robot_copy.start_tile_x = robot->start_tile_x;
   robot_copy.start_tile_y = robot->start_tile_y;
-  robot_copy.ramp_begin_x = robot->ramp_begin_x;
-  robot_copy.ramp_begin_y = robot->ramp_begin_y;
-  robot_copy.ramp_end_x   = robot->ramp_end_x;
-  robot_copy.ramp_end_y   = robot->ramp_end_y;
   for(int z = 0; z < 2; z++) {
     for(int y = 0; y < MAZE_Y; y++) {
       for(int x = 0; x < MAZE_X; x++) {
@@ -120,9 +116,6 @@ void shift_maze_right(Maze maze, Robot *robot_ptr) {
   }
   if(!z) {
     robot_ptr->start_tile_x++;
-    robot_ptr->ramp_begin_x++;
-  } else {
-    robot_ptr->ramp_end_x++;
   }
   robot_ptr->x++;
 }
@@ -139,9 +132,6 @@ void shift_maze_up(Maze maze, Robot *robot_ptr) {
   }
   if(!z) {
     robot_ptr->start_tile_y++;
-    robot_ptr->ramp_begin_y++;
-  } else {
-    robot_ptr->ramp_end_y++;
   }
   robot_ptr->y++;
 }

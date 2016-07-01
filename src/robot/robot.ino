@@ -54,10 +54,7 @@ void init_robot(Robot *robot) {
   robot->d = N;
   robot->start_tile_x = 1;
   robot->start_tile_y = 1;
-  robot->ramp_begin_x = 1;
-  robot->ramp_begin_y = 1;
-  robot->ramp_end_x = 1;
-  robot->ramp_end_y = 1;
+
 }
 
 void reset_robot(Maze maze, Robot *robot) {
@@ -67,10 +64,6 @@ void reset_robot(Maze maze, Robot *robot) {
   robot->d            = robot_copy.d;
   robot->start_tile_x = robot_copy.start_tile_x;
   robot->start_tile_y = robot_copy.start_tile_y;
-  robot->ramp_begin_x = robot_copy.ramp_begin_x;
-  robot->ramp_begin_y = robot_copy.ramp_begin_y;
-  robot->ramp_end_x   = robot_copy.ramp_end_x;
-  robot->ramp_end_y   = robot_copy.ramp_end_y;
   //maybe write a function to confirm this fact?
   robot->d = N;
   for(int z = 0; z < 2; z++) {
@@ -151,7 +144,7 @@ void loop() {
   }
   uint16 *maze[]      = {maze_floor_1, maze_floor_2};
 
-  /*  
+  /*
   while(1) {
     Serial.printf("LIGHT: %i\n", get_light_sensor());
     Serial.printf("L:%f\n",read_us_average_l());
@@ -166,8 +159,8 @@ void loop() {
     delay(10);
     Serial.printf("BR:%f\n",read_us_average_br());
     delay(1000);
-  }   
-  */
+  }    */
+  
   init_dropper();
   reset_enc();
   flash_all(neo_pixel.Color(0, 0, 255), 500);
@@ -185,7 +178,7 @@ void loop() {
       }
       Serial.printf("\n");
     }  */
-
+    Serial.printf("ROBOT: x->%i, y->%i, z->%i, d->%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z, robot_ptr->d);
     update_wall(maze, robot_ptr);
     if(maze_solver(maze, robot_ptr)  && !reset_signal) {
       //finished maze
@@ -197,7 +190,6 @@ void loop() {
     if(reset_signal) {
       reset_robot(maze, robot_ptr);
     }
-    show_coord(robot_ptr->x, robot_ptr->y);
     flash_all(neo_pixel.Color(255, 0, 255), 500);
   }
 }

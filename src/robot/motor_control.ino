@@ -94,25 +94,41 @@ void move_forward_tile(Maze maze, Robot *robot_ptr) {
     p_sync_forward(255);
   }
   motor_off();
-  if (acc_val > 1) {
-    us_l = read_us_l();
-    delay(10);
-    us_r = read_us_r();
-    //going up the ramp
+  if (acc_val > 0) {
     motor_off();
-    if (get_pitch() > RAMP_ANGLE) {
-      ramp(maze, robot_ptr, 1);
-      return;
+    us_l = read_us_average_l();
+    delay(10);
+    us_r = read_us_average_r();
+    //going up the ramp
+
+    uint8 count = 0;
+    if (us_l < 20 && us_r < 20) {
+      for(int i = 0; i < 5; i++) {
+        if(get_pitch() > RAMP_ANGLE) {
+          count++;
+        }
+      }
+      if (count > 2) {
+        ramp(maze, robot_ptr, 1);
+        return;
+      }
     }
   }
-  if (acc_val < -1) {
-    us_l = read_us_l();
+  if (acc_val < 0) {
+    motor_off();
+    us_l = read_us_average_l();
     delay(10);
-    us_r = read_us_r();
+    us_r = read_us_average_r();
     //going down the ramp
+
+    uint8 count = 0;
     if (us_l < 20 && us_r < 20) {
-      motor_off();
-      if (get_pitch() < -RAMP_ANGLE) {
+      for(int i = 0; i < 5; i++) {
+        if(get_pitch() < -RAMP_ANGLE) {
+          count++;
+        }
+      }
+      if (count > 2) {
         ramp(maze, robot_ptr, 0);
         return;
       }
@@ -352,14 +368,14 @@ void turn_right_90(Robot *robot_ptr) {
         }
       } else {
         if (d_angle > -1000) {
-          turn_left(180);
+          turn_left(160);
         } else {
           turn_left(255);
         }
       }
     } else {
       if (d_angle < 1000) {
-        turn_right(180);
+        turn_right(160);
       } else {
         turn_right(255);
       }
@@ -431,14 +447,14 @@ void turn_left_90(Robot *robot_ptr) {
         break;
       } else {
         if (d_angle > -1000) {
-          turn_right(180);
+          turn_right(160);
         } else {
           turn_right(255);
         }
       }
     } else {
       if (d_angle < 1000) {
-        turn_left(180);
+        turn_left(160);
       } else {
         turn_left(255);
       }
@@ -534,50 +550,65 @@ void avoid_right(void) {
   }
   motor_off();
 }
+void set_ramp_tile(Maze maze, Robot *robot_ptr) {
+  uint8 x = robot_ptr->x;
+  uint8 y = robot_ptr->y;
+  uint8 z = robot_ptr->z;
 
-void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
-  int16 speed_setting = 255;
-  if(!up) {
-    speed_setting = 150;
-  }
-  motor_off();
-  if (robot_ptr->z) {
-    robot_ptr->x = robot_ptr->ramp_begin_x;
-    robot_ptr->y = robot_ptr->ramp_begin_y;
-    robot_ptr->z = 0;
-  } else {
-    uint8_t d = robot_ptr->d;
-    switch (d) {
+  switch(robot_ptr->d) {
+    case N:
+    case S:
+      set_west_wall(maze, x, y, z, 1);
+      set_east_wall(maze, x, y, z, 1);
+      set_visited(maze, x, y, z, 1);
+      break;
+    case E:
+    case W:
+      set_north_wall(maze, x, y, z, 1);
+      set_south_wall(maze, x, y, z, 1);
+      set_visited(maze, x, y, z, 1);
+      break;
+    }
+}
+
+void add_ramp_tiles(Maze maze, Robot *robot_ptr) {
+  set_ramp_tile(maze, robot_ptr);
+  for(int i = 0; i < 7; i++) {
+    switch(robot_ptr->d) {
       case N:
-        if (robot_ptr->y < MAZE_Y) {
-          robot_ptr->y --;
-        }
+        robot_ptr->y++;
+        set_ramp_tile(maze, robot_ptr);
         break;
       case E:
-        if (robot_ptr->x < MAZE_Y) {
-          robot_ptr->x --;
-        }
-        break;
-      case S:
-        if (robot_ptr->y) {
-          robot_ptr->y++;
-        }
+        robot_ptr->x++;
+        set_ramp_tile(maze, robot_ptr);
         break;
       case W:
-        if (robot_ptr->x) {
-          robot_ptr->x++;
+        if(robot_ptr->x == 1) {
+          set_ramp_tile(maze, robot_ptr);
         }
+        robot_ptr->x--;
+        set_ramp_tile(maze, robot_ptr);
+        break;
+      case S:
+        if(robot_ptr->y == 1) {
+          set_ramp_tile(maze, robot_ptr);
+        }
+        robot_ptr->y--;
+        set_ramp_tile(maze, robot_ptr);
         break;
     }
-    //set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
-    robot_ptr->ramp_begin_x = robot_ptr->x;
-    robot_ptr->ramp_begin_y = robot_ptr->y;
-    robot_ptr->x = 1;
-    robot_ptr->y = 1;
-    robot_ptr->z = 1;
-    //set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
-    robot_ptr->ramp_end_x = robot_ptr->x;
-    robot_ptr->ramp_end_y = robot_ptr->y;
+  }
+  Serial.printf("ROBOT RAMP: x->%i, y->%i, z->%i, d->%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z, robot_ptr->d);
+}
+
+void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
+
+  add_ramp_tiles(maze, robot_ptr);
+  delay(100);
+  int16 speed_setting = 255;
+  if(!up) {
+    speed_setting = 180;
   }
 
   //go out of the room and set the back to be wall
@@ -593,48 +624,42 @@ void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
     us_fl = read_us_fl();
     delay(10);
     us_fr = read_us_fr();
+    if(read_heat_sensor(TPA81_LEFT) || read_heat_sensor(TPA81_RIGHT)) {
+
+      flash_all(neo_pixel.Color(0, 255, 100), 300);
+      motor_off();
+      drop_rescue_kit();
+      for (int i = 0; i < 4; i++) {
+        flash_all(neo_pixel.Color(255, 255, 255), 500);
+        delay(500);
+      }
+    }
     if (get_right_bumper() && get_left_bumper()) {
-      move_backward(500);
+      move_backward(255);
+      delay(100);
       motor_off();
       align_robot();
       break;
     }
+    if(us_r > 20 || us_r == 0 || us_l > 20 || us_l == 0) {
+      motor_off();
+      move_forward(255);
+      delay(500);
+      motor_off();
+      break;
+    }
     p_sync_forward(speed_setting);
   }
-
   us_l = read_us_average_l();
   delay(10);
   us_r = read_us_average_r();
   delay(10);
-
-  uint8 x = robot_ptr->x;
-  uint8 y = robot_ptr->y;
-  uint8 z = robot_ptr->z;
-  uint8 d = robot_ptr->d;
-
-  switch (d) {
-    case N:
-      set_south_wall(maze, x, y, z, 1);
-      set_key_tile(maze, x, y - 1, z, 1);
-      break;
-    case E:
-      set_west_wall(maze, x, y, z, 1);
-      set_key_tile(maze, x - 1, y, z, 1);
-      break;
-    case S:
-      set_north_wall(maze, x, y, z, 1);
-      set_key_tile(maze, x, y + 1, z, 1);
-      break;
-    case W:
-      set_east_wall(maze, x, y, z, 1);
-      set_key_tile(maze, x + 1, y, z, 1);
-      break;
-  }
-  if (us_r < 20) {
+  /*
+  if(us_r < 20) {
     turn_left_90(robot_ptr);
   } else {
     turn_right_90(robot_ptr);
   }
-
   move_forward_tile(maze, robot_ptr);
+  */
 }

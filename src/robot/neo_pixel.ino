@@ -52,15 +52,14 @@ uint32_t wheel(byte wheel_pos) {
 
 void show_coord(uint8 x, uint8 y) {
   for(uint16_t i=0; i<x; i++) {
-    neo_pixel.setPixelColor(i, neo_pixel.Color(255, 0, 0));
+    flash_all(neo_pixel.Color(255, 0, 0), 100);
+    delay(200);
   }
-  neo_pixel.show();
   delay(500);
-  neo_pixel_clear();
   for(uint16_t i=0; i<y; i++) {
-    neo_pixel.setPixelColor(i, neo_pixel.Color(0, 255, 0));
+    flash_all(neo_pixel.Color(0, 255, 0), 100);
+    delay(200);
   }
-  neo_pixel.show();
-  delay(500);
+
 }
 

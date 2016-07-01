@@ -135,6 +135,7 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
   set_val(maze, robot_ptr->x, robot_ptr->y, z, 1);
   uint8 end_search = 1;
   int x = 0, y = 0;
+  int min_x = 0, min_y = 0, min_val = 255;
   //flood the maze and find the closest
   for(;;) {
     end_search = 1;
@@ -145,8 +146,17 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
         if(lowest_val && get_val(maze, x, y, z) == 255) {
           set_val(maze, x, y, z, lowest_val + 1);
           if(!is_visited(maze, x, y, z)) {
-            go_to_next_unvisited(maze, robot_ptr, x, y);
+            
+            
+            go_to_next_unvisited(maze, robot_ptr, x, y); 
             return 1;
+            /*
+            if(min_val > lowest_val + 1) {
+              min_x = x;
+              min_y = y;
+              min_val = lowest_val + 1;
+            }  */
+            
           }
           end_search = 0;
         }
@@ -156,14 +166,19 @@ uint8 find_unvisited(Maze maze, Robot *robot_ptr) {
       //on the non starting floor
       if(robot_ptr->z) {
         flash_all(neo_pixel.Color(0, 255, 0), 500);
-        go_to_next_unvisited(maze, robot_ptr, robot_ptr->ramp_end_x, robot_ptr->ramp_end_y);
+        //go_to_next_unvisited(maze, robot_ptr, robot_ptr->ramp_end_x, robot_ptr->ramp_end_y);
       } else {
         //otherwise go back to start tile
         flash_all(neo_pixel.Color(0, 255, 0), 500);
         go_to_next_unvisited(maze, robot_ptr, robot_ptr->start_tile_x, robot_ptr->start_tile_y);
       }
       return 0;
-    }
+    } 
+    /*
+    if(end_search) {
+      //go_to_next_unvisited(maze, robot_ptr, min_x, min_y);
+      //return 1;
+    } */
   }
 }
 

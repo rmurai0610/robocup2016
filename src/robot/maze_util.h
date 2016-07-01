@@ -10,9 +10,9 @@
 #define SOUTH_WALL_MASK     0x0002u
 #define WEST_WALL_VIC_MASK  0x0004u
 #define SOUTH_WALL_VIC_MASK 0x0008u
-#define VISITED_MASK        0x0010u
-#define CHECKPOINT_MASK     0x0020u
-#define SAVED_TILE_MASK     0x0040u
-#define RAMP_TILE_MASK      0x0080u
+#define EAST_WALL_VIC_MASK  0x0010u
+#define NORTH_WALL_VIC_MASK 0x0020u
+#define VISITED_MASK        0x0040u
+#define KEY_TILE_MASK      0x0080u
 
 #endif

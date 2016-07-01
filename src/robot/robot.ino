@@ -25,6 +25,12 @@ int32 encoder_val_r = 0;
 motor_dir curr_dir_l   = FORWARD;
 motor_dir curr_dir_r   = FORWARD;
 
+//global variable for map / robot backup
+uint16 maze_floor_1_copy[MAZE_SIZE * MAZE_SIZE];
+uint16 maze_floor_2_copy[MAZE_SIZE * MAZE_SIZE];
+uint16 *maze_copy[] = {maze_floor_1_copy, maze_floor_2_copy};
+Robot robot_copy;
+
 //for reset
 uint8 reset_signal = 0;
 //To allow any function to access neo pixel and servo easily
@@ -48,29 +54,33 @@ void init_robot(Robot *robot) {
   robot->d = N;
   robot->start_tile_x = 1;
   robot->start_tile_y = 1;
-  robot->last_check_point_x = robot->x;
-  robot->last_check_point_y = robot->y;
-  robot->last_check_point_z = robot->z;
+  robot->ramp_begin_x = 1;
+  robot->ramp_begin_y = 1;
+  robot->ramp_end_x = 1;
+  robot->ramp_end_y = 1;
 }
 
 void reset_robot(Maze maze, Robot *robot) {
-  robot->x = robot->last_check_point_x;
-  robot->y = robot->last_check_point_y;
-  robot->z = robot->last_check_point_z;
+  robot->x            = robot_copy.x;
+  robot->y            = robot_copy.y;
+  robot->z            = robot_copy.z;
+  robot->d            = robot_copy.d;
+  robot->start_tile_x = robot_copy.start_tile_x;
+  robot->start_tile_y = robot_copy.start_tile_y;
+  robot->ramp_begin_x = robot_copy.ramp_begin_x;
+  robot->ramp_begin_y = robot_copy.ramp_begin_y;
+  robot->ramp_end_x   = robot_copy.ramp_end_x;
+  robot->ramp_end_y   = robot_copy.ramp_end_y;
   //maybe write a function to confirm this fact?
   robot->d = N;
   for(int z = 0; z < 2; z++) {
     for(int y = 0; y < MAZE_Y; y++) {
       for(int x = 0; x < MAZE_X; x++) {
-        if(!is_saved(maze, x, y, z)) {
-          maze[z][x + y * MAZE_X] = 0xFF00u;
-        }
+          maze[z][x + y * MAZE_X] = maze_copy[z][x + y * MAZE_X];
       }
     }
   }
   while(!get_left_bumper());
-  print_binary(robot->x, 1000, neo_pixel.Color(255, 0, 0));
-  print_binary(robot->x, 1000, neo_pixel.Color(0, 255, 0));
   reset_signal = 0;
   color_wipe(neo_pixel.Color(255, 0, 0), 100);
   delay(100);
@@ -134,23 +144,14 @@ void loop() {
 
   uint16 maze_floor_1[MAZE_SIZE * MAZE_SIZE];
   uint16 maze_floor_2[MAZE_SIZE * MAZE_SIZE];
-  
-  uint16 maze_floor_1_copy[MAZE_SIZE * MAZE_SIZE];
-  uint16 maze_floor_2_copy[MAZE_SIZE * MAZE_SIZE];
-  
+
   for (int i = 0; i < MAZE_SIZE * MAZE_SIZE; ++i) {
     maze_floor_1[i] = 0xFF00u;
     maze_floor_2[i] = 0xFF00u;
   }
   uint16 *maze[]      = {maze_floor_1, maze_floor_2};
-  uint16 *maze_copy[] = {maze_floor_1_copy, maze_floor_2_copy};
-  maze_copy = maze;
-  Serial.println(maze_copy[0][0]);
-  set_val(maze, 0,0,0,0);
-  Serial.println(maze_copy[0][0]);
-  while(1);
-  
-  /*
+
+  /*  
   while(1) {
     Serial.printf("LIGHT: %i\n", get_light_sensor());
     Serial.printf("L:%f\n",read_us_average_l());
@@ -165,8 +166,8 @@ void loop() {
     delay(10);
     Serial.printf("BR:%f\n",read_us_average_br());
     delay(1000);
-  }   */
-
+  }   
+  */
   init_dropper();
   reset_enc();
   flash_all(neo_pixel.Color(0, 0, 255), 500);
@@ -174,17 +175,17 @@ void loop() {
   delay(1000);
   reset_imu();
   reset_enc();
-
-  align_robot();
+   
   for(;;) {
     //Serial.printf("robot x:%i y:%i z:%i\n", robot_ptr->x, robot_ptr->y, robot_ptr->z);
+    /*
    for(int y = 0; y < 10; y++) {
       for(int x = 0; x < 10; x++) {
         Serial.printf("%i ", (uint8) maze[robot_ptr->z][robot_ptr->x + robot_ptr->y * MAZE_X]);
       }
       Serial.printf("\n");
-    } 
-    
+    }  */
+
     update_wall(maze, robot_ptr);
     if(maze_solver(maze, robot_ptr)  && !reset_signal) {
       //finished maze
@@ -192,13 +193,11 @@ void loop() {
         rainbow(100);
       }
     }
-    
+
     if(reset_signal) {
       reset_robot(maze, robot_ptr);
     }
+    show_coord(robot_ptr->x, robot_ptr->y);
     flash_all(neo_pixel.Color(255, 0, 255), 500);
-    //print_binary(robot_ptr->x, 500, neo_pixel.Color(255, 0, 0));
-    //print_binary(robot_ptr->x, 500, neo_pixel.Color(0, 255, 0));
-    Serial.printf("X: %i Y:%i\n", robot_ptr->x, robot_ptr->y);
   }
 }

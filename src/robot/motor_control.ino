@@ -1,4 +1,5 @@
-#define DIST_TO_WALL_FRONT 7.5
+#define DIST_TO_WALL_FRONT 8.5
+#define DIST_TO_WALL_BACK  7
 #define DIST_TO_WALL_SIDE  6
 #define P_ALIGN            30
 #define P_ALIGN_SIDE       100
@@ -140,11 +141,11 @@ void align_robot(void) {
   for (;;) {
     if (curr_fl > 20 || curr_fr > 20 || curr_fr < 1 || curr_fl < 1) {
       motor_off();
-      return;
+      break;
     }
     if (acceptable_val(DIST_TO_WALL_FRONT, curr_fl) && acceptable_val(DIST_TO_WALL_FRONT, curr_fr)) {
       motor_off();
-      return;
+      break;
     }
     if (curr_fl > DIST_TO_WALL_FRONT) {
       p_pow_l = 150;
@@ -187,6 +188,63 @@ void align_robot(void) {
     curr_fl = read_us_fl();
     delay(10);
     curr_fr = read_us_fr();
+    delay(10);
+  }
+
+  float curr_bl = read_us_average_bl();
+  float curr_br = read_us_average_br();
+  p_pow_r = 0;
+  p_pow_l = 0;
+  for (;;) {
+    if (curr_bl > 20 || curr_br > 20 || curr_br < 1 || curr_bl < 1) {
+      motor_off();
+      break;
+    }
+    if (acceptable_val(DIST_TO_WALL_BACK, curr_bl) && acceptable_val(DIST_TO_WALL_BACK, curr_br)) {
+      motor_off();
+      break;
+    }
+    if (curr_bl > DIST_TO_WALL_BACK) {
+      p_pow_l = 150;
+    } else {
+      p_pow_l = -150;
+    }
+    if (curr_br > DIST_TO_WALL_BACK) {
+      p_pow_r = 150;
+    } else {
+      p_pow_r = -150;
+    }
+    if (!acceptable_val(DIST_TO_WALL_BACK, curr_bl)) {
+      p_pow_l += (int32) ((curr_bl - DIST_TO_WALL_BACK) * P_ALIGN);
+    } else {
+      p_pow_l = 0;
+    }
+    if (!acceptable_val(DIST_TO_WALL_BACK, curr_br)) {
+      p_pow_r += (int32) ((curr_br - DIST_TO_WALL_BACK) * P_ALIGN);
+    } else {
+      p_pow_r = 0;
+    }
+
+    if (p_pow_l > -180 && p_pow_l < 0) {
+      p_pow_l = -180;
+    }
+    if (p_pow_r > -180 && p_pow_r < 0) {
+      p_pow_r = -180;
+    }
+    if (p_pow_l < 180 && p_pow_l > 0) {
+      p_pow_l = 180;
+    }
+    if (p_pow_r < 180 && p_pow_r > 0) {
+      p_pow_r = 180;
+    }
+    limit_motor_speed(&p_pow_l);
+    limit_motor_speed(&p_pow_r);
+
+    motor_left(-p_pow_l);
+    motor_right(-p_pow_r);
+    curr_bl = read_us_bl();
+    delay(10);
+    curr_br = read_us_br();
     delay(10);
   }
 }
@@ -255,6 +313,7 @@ uint8 should_look_for_victim_right = 1;
 uint8 should_look_for_victim_left = 1;
 //////////////////////////////////////////////////////////////////////////////////
 void turn_right_90(Robot *robot_ptr) {
+  align_robot();
   robot_ptr->d += 1;
   robot_ptr->d %= 4;
 
@@ -329,10 +388,11 @@ void turn_right_90(Robot *robot_ptr) {
     should_look_for_victim_left = 1;
     should_look_for_victim_right = 1;
   }
+  align_robot();
 }
 
 void turn_left_90(Robot *robot_ptr) {
-
+  align_robot();
   if (!robot_ptr->d) {
     //if robot_ptr->d = 0, force it to be West
     robot_ptr->d = W;
@@ -407,6 +467,7 @@ void turn_left_90(Robot *robot_ptr) {
     should_look_for_victim_left = 1;
     should_look_for_victim_right = 1;
   }
+  align_robot();
 }
 
 int16_t get_target_angle(uint8_t d) {
@@ -480,11 +541,9 @@ void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
     speed_setting = 150;
   }
   motor_off();
-  uint8 ramp_x, ramp_y;
   if (robot_ptr->z) {
-    find_ramp_tile(maze, robot_ptr, &ramp_x, &ramp_y);
-    robot_ptr->x = ramp_x;
-    robot_ptr->y = ramp_y;
+    robot_ptr->x = robot_ptr->ramp_begin_x;
+    robot_ptr->y = robot_ptr->ramp_begin_y;
     robot_ptr->z = 0;
   } else {
     uint8_t d = robot_ptr->d;
@@ -501,20 +560,24 @@ void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
         break;
       case S:
         if (robot_ptr->y) {
-          robot_ptr->y --;
+          robot_ptr->y++;
         }
         break;
       case W:
         if (robot_ptr->x) {
-          robot_ptr->x --;
+          robot_ptr->x++;
         }
         break;
     }
-    set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
+    //set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
+    robot_ptr->ramp_begin_x = robot_ptr->x;
+    robot_ptr->ramp_begin_y = robot_ptr->y;
     robot_ptr->x = 1;
     robot_ptr->y = 1;
     robot_ptr->z = 1;
-    set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
+    //set_ramp_tile(maze, robot_ptr->x, robot_ptr->y, robot_ptr->z, 1);
+    robot_ptr->ramp_end_x = robot_ptr->x;
+    robot_ptr->ramp_end_y = robot_ptr->y;
   }
 
   //go out of the room and set the back to be wall
@@ -543,29 +606,35 @@ void ramp(Maze maze, Robot *robot_ptr, uint8 up) {
   delay(10);
   us_r = read_us_average_r();
   delay(10);
-  uint8 curr_d = robot_ptr->d;
+
+  uint8 x = robot_ptr->x;
+  uint8 y = robot_ptr->y;
+  uint8 z = robot_ptr->z;
+  uint8 d = robot_ptr->d;
+
+  switch (d) {
+    case N:
+      set_south_wall(maze, x, y, z, 1);
+      set_key_tile(maze, x, y - 1, z, 1);
+      break;
+    case E:
+      set_west_wall(maze, x, y, z, 1);
+      set_key_tile(maze, x - 1, y, z, 1);
+      break;
+    case S:
+      set_north_wall(maze, x, y, z, 1);
+      set_key_tile(maze, x, y + 1, z, 1);
+      break;
+    case W:
+      set_east_wall(maze, x, y, z, 1);
+      set_key_tile(maze, x + 1, y, z, 1);
+      break;
+  }
   if (us_r < 20) {
     turn_left_90(robot_ptr);
   } else {
     turn_right_90(robot_ptr);
   }
-  
-  move_forward_tile(maze, robot_ptr);
-  find_ramp_tile(maze, robot_ptr, &ramp_x, &ramp_y);
-  set_visited(maze, ramp_x, ramp_y, robot_ptr->z, 1);
 
-  switch (curr_d) {
-    case N:
-      set_south_wall(maze, ramp_x, ramp_y, robot_ptr->z, 1);
-      break;
-    case E:
-      set_west_wall(maze, ramp_x, ramp_y, robot_ptr->z, 1);
-      break;
-    case S:
-      set_north_wall(maze, ramp_x, ramp_y, robot_ptr->z, 1);
-      break;
-    case W:
-      set_east_wall(maze, ramp_x, ramp_y, robot_ptr->z, 1);
-      break;
-  }
+  move_forward_tile(maze, robot_ptr);
 }

@@ -1,7 +1,7 @@
 void neo_pixel_clear(void) {
   for(uint16_t i=0; i<neo_pixel.numPixels(); i++) {
     neo_pixel.setPixelColor(i, 0);
-  }  
+  }
   neo_pixel.show();
 }
 
@@ -50,16 +50,17 @@ uint32_t wheel(byte wheel_pos) {
   return neo_pixel.Color(wheel_pos * 3, 255 - wheel_pos * 3, 0);
 }
 
-void print_binary(uint8_t val, uint16_t wait, uint32_t c) {
-  uint8 mask = 1;
-  for(int i = 0; i < 8; i++) {
-    if(val & mask) {
-      neo_pixel.setPixelColor(i, c);
-    }
-    mask <<= 1;
+void show_coord(uint8 x, uint8 y) {
+  for(uint16_t i=0; i<x; i++) {
+    neo_pixel.setPixelColor(i, neo_pixel.Color(255, 0, 0));
   }
   neo_pixel.show();
-  delay(wait);
+  delay(500);
   neo_pixel_clear();
+  for(uint16_t i=0; i<y; i++) {
+    neo_pixel.setPixelColor(i, neo_pixel.Color(0, 255, 0));
+  }
+  neo_pixel.show();
+  delay(500);
 }
 
